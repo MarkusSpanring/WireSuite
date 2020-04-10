@@ -16,7 +16,7 @@ import wx.lib.mixins.listctrl
 import json
 import os
 import time
-from Connector import ConnectorEditorGUI, ConnectorData
+from Connector import ConnectorEditorDialog, ConnectorData
 
 
 class AutoWidthListCtrl(wx.ListCtrl,
@@ -28,10 +28,10 @@ class AutoWidthListCtrl(wx.ListCtrl,
         wx.lib.mixins.listctrl.ListCtrlAutoWidthMixin.__init__(self)
         wx.lib.mixins.listctrl.ListRowHighlighter.__init__(self)
 
-class AdapterEditorGUI(wx.Frame):
+class AdapterEditorDialog(wx.Dialog):
 
     def __init__(self, parent=None, adptSetting = "", *args, **kw):
-        super(AdapterEditorGUI, self).__init__( parent,size=(400,300),*args, **kw)
+        super(AdapterEditorDialog, self).__init__( parent,size=(400,300),*args, **kw)
         self.directory = parent.directory
         self.InitUI()
         self.connector = None
@@ -153,10 +153,10 @@ class AdapterEditorGUI(wx.Frame):
     def OnNewConnectorClicked(self, e):
 
         if not self.connector:
-            self.connector = ConnectorEditorGUI(self,forbiddenPins=self.getUsedPins())
+            self.connector = ConnectorEditorDialog(self,forbiddenPins=self.getUsedPins())
             self.connector.Bind(wx.EVT_CLOSE, self.OnProxySaveConnector)
             self.connectorIdx = self.listbox.GetItemCount()
-            self.connector.Show()
+            self.connector.ShowModal()
 
 
     def OnEditConnectorClicked(self, e):
@@ -165,13 +165,13 @@ class AdapterEditorGUI(wx.Frame):
             self.connectorIdx = self.listbox.GetFocusedItem()
             forbiddenPins = [i for i in self.getUsedPins() if i not in self.containers[self.connectorIdx].getUsedPins()]
 
-            self.connector = ConnectorEditorGUI(self,name = self.containers[self.connectorIdx].name,
+            self.connector = ConnectorEditorDialog(self,name = self.containers[self.connectorIdx].name,
                                                nPins= self.containers[self.connectorIdx].nPins,
                                                data = self.containers[self.connectorIdx].data,
                                                forbiddenPins=forbiddenPins)
 
             self.connector.Bind(wx.EVT_CLOSE, self.OnProxySaveConnector)
-            self.connector.Show()
+            self.connector.ShowModal()
 
     def OnDeleteConnectorClicked(self, e):
         if not self.connector:
@@ -182,8 +182,6 @@ class AdapterEditorGUI(wx.Frame):
             self.ediBtn.Disable()
             self.delBtn.Disable()
             self.saveBtn.Disable()
-
-
 
     def OnProxySaveConnector(self, e):
 
@@ -205,7 +203,7 @@ class AdapterEditorGUI(wx.Frame):
 def main():
 
     app = wx.App()
-    ex = AdapterEditorGUI(None)
+    ex = AdapterEditorDialog(None)
     ex.Show()
     app.MainLoop()
 

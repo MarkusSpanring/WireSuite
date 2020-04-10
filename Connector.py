@@ -68,10 +68,10 @@ class ConnectorData():
 
 
 
-class ConnectorEditorGUI(wx.Frame):
+class ConnectorEditorDialog(wx.Dialog):
 
     def __init__(self, parent, name = "", forbiddenPins=[], nPins = 0, maxPins=37, data=[]):
-        super(ConnectorEditorGUI, self).__init__(parent, title='Neuer Stecker')
+        super(ConnectorEditorDialog, self).__init__(parent, title='Neuer Stecker')
 
         self.maxPins = maxPins - len(forbiddenPins)
         self.forbiddenPins =  forbiddenPins

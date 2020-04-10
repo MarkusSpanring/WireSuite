@@ -1,7 +1,7 @@
 import wx
 import os
 import json
-from Adapter import AdapterEditorGUI
+from Adapter import AdapterEditorDialog
 
 class MainAdapterPanel(wx.Panel):
 
@@ -126,9 +126,9 @@ class MainAdapterPanel(wx.Panel):
             self.btnAssignAdpt.Enable()
 
     def onNewAdptClicked(self, event):  # wxGlade: mainFrame.<event_handler>
-        self.AdapterEditor = AdapterEditorGUI(self)
+        self.AdapterEditor = AdapterEditorDialog(self)
         self.AdapterEditor.Bind(wx.EVT_CLOSE, self.onAdapterEditorClose)
-        self.AdapterEditor.Show()
+        self.AdapterEditor.ShowModal()
         # print("Event handler 'onNewAdptClicked' not implemented!")
         # event.Skip()
 
@@ -139,7 +139,7 @@ class MainAdapterPanel(wx.Panel):
 
     def onEditAdptClicked(self, event):  # wxGlade: mainFrame.<event_handler>
         selAdapter = self.lboxAdptChoices.GetString(self.lboxAdptChoices.GetSelection())
-        self.AdapterEditor = AdapterEditorGUI(self,adptSetting=selAdapter)
+        self.AdapterEditor = AdapterEditorDialog(self,adptSetting=selAdapter)
         self.AdapterEditor.Bind(wx.EVT_CLOSE, self.onAdapterEditorClose)
         self.AdapterEditor.Show()
         self.btnEditAdpt.Disable()
