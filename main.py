@@ -4,6 +4,7 @@ import json
 from Adapter import AdapterEditorGUI
 from WireListGrid import WireListGrid
 from WireListDataFrame import WireListDataFrame
+from PDFToDataFrameGUI import PDFToDataFrameGUI
 ########################################################################
 class MyPanel(wx.Panel):
     """"""
@@ -283,7 +284,7 @@ class WireListPanel(wx.Panel):
 
     def __init__(self, parent):
         """Constructor"""
-        wx.Panel.__init__(self, parent,size=(850,600))
+        wx.Panel.__init__(self, parent,size=(1000,600))
         parent.active_panel = "WireList"
 
         self.wlDataFrame = WireListDataFrame()
@@ -337,6 +338,15 @@ class WireListPanel(wx.Panel):
         self.rbSortOptions.SetSelection(0)
 
     def onImportPDFClicked(self, event):  # wxGlade: MyFrame.<event_handler>
+        self.pdfimporter = PDFToDataFrameGUI(self)
+        self.pdfimporter.Bind(wx.EVT_CLOSE, self.onPDFImporterClose)
+        self.pdfimporter.Show()
+
+    def onPDFImporterClose(self, event):
+
+        self.wireList.set_from_dataframe( self.pdfimporter.getData() )
+        event.Skip()
+
         print("Event handler 'onImportPDFClicked' not implemented!")
         event.Skip()
 
