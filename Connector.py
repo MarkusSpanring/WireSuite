@@ -126,8 +126,6 @@ class ConnectorEditorDialog(wx.Dialog):
         self.scKontakte.Bind(wx.EVT_SPINCTRL, self.generateListBox)
         self.btnSave.Bind(wx.EVT_BUTTON, self.onSaveClicked)
 
-        # self.btnSave.Bind(wx.EVT_BUTTON, self.fillDataContainer)
-
         self.panel.SetSizer(vbox)
 
 

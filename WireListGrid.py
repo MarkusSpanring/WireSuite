@@ -51,6 +51,8 @@ class WireListGrid(wx.grid.Grid):
         return df
 
     def set_from_dataframe(self,df,sub_headers=[]):
+        if df.empty:
+            return
 
         data = []
         for i,row in df.iterrows():

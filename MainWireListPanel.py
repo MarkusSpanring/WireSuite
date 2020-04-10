@@ -2,14 +2,14 @@ import wx
 
 from WireListGrid import WireListGrid
 from WireListDataFrame import WireListDataFrame
-from PDFToDataFrameGUI import PDFToDataFrameGUI
+from PDFToDataFrameDialog import PDFToDataFrameDialog
 
 
 class MainWireListPanel(wx.Panel):
 
     def __init__(self, parent):
         """Constructor"""
-        wx.Panel.__init__(self, parent,size=(1000,600))
+        super(MainWireListPanel, self).__init__(parent,size=(1000,600))
         parent.active_panel = "WireList"
 
         self.wlDataFrame = WireListDataFrame()
@@ -56,10 +56,9 @@ class MainWireListPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.onImportPDFClicked, self.btnImportPDF)
         self.Bind(wx.EVT_RADIOBOX, self.onSortOptionSelected, self.rbSortOptions)
         self.Bind(wx.EVT_BUTTON, self.onExportClicked, self.btnExport)
-        # end wxGlade
 
-    def onImportExcelClicked(self, event):  # wxGlade: MyFrame.<event_handler>
-    
+    def onImportExcelClicked(self, event):
+
         openFileDialog = wx.FileDialog(self, "Öffnen", "", "", "Excel Dateien (*.xlsx)|*.xlsx",
                                               wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         openFileDialog.ShowModal()
@@ -67,22 +66,22 @@ class MainWireListPanel(wx.Panel):
         self.wireList.set_from_dataframe( self.wlDataFrame.get_dataframe() )
         self.rbSortOptions.SetSelection(0)
 
-    def onImportPDFClicked(self, event):  # wxGlade: MyFrame.<event_handler>
-        self.pdfimporter = PDFToDataFrameGUI(self)
+    def onImportPDFClicked(self, event):
+        self.pdfimporter = PDFToDataFrameDialog(self)
         self.pdfimporter.Bind(wx.EVT_CLOSE, self.onPDFImporterClose)
-        self.pdfimporter.Show()
+        self.pdfimporter.ShowModal()
 
     def onPDFImporterClose(self, event):
 
         self.wireList.set_from_dataframe( self.pdfimporter.getData() )
         event.Skip()
 
-    def onSortOptionSelected(self, event):  # wxGlade: MyFrame.<event_handler>
+    def onSortOptionSelected(self, event):
 
         print( self.rbSortOptions.GetSelection())
         print("Event handler 'onSortOptionSelected' not implemented!")
         event.Skip()
 
-    def onExportClicked(self, event):  # wxGlade: MyFrame.<event_handler>
+    def onExportClicked(self, event):
         print("Event handler 'onExportClicked' not implemented!")
         event.Skip()

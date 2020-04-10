@@ -1,16 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-"""
-ZetCode wxPython tutorial
-
-This example demonstrates event propagation.
-
-author: Jan Bodnar
-website: www.zetcode.com
-last modified: April 2018
-"""
-
 import wx
 import wx.lib.mixins.listctrl
 import json
@@ -165,10 +152,11 @@ class AdapterEditorDialog(wx.Dialog):
             self.connectorIdx = self.listbox.GetFocusedItem()
             forbiddenPins = [i for i in self.getUsedPins() if i not in self.containers[self.connectorIdx].getUsedPins()]
 
-            self.connector = ConnectorEditorDialog(self,name = self.containers[self.connectorIdx].name,
-                                               nPins= self.containers[self.connectorIdx].nPins,
-                                               data = self.containers[self.connectorIdx].data,
-                                               forbiddenPins=forbiddenPins)
+            self.connector = ConnectorEditorDialog(self,
+                                                   name = self.containers[self.connectorIdx].name,
+                                                   nPins= self.containers[self.connectorIdx].nPins,
+                                                   data = self.containers[self.connectorIdx].data,
+                                                   forbiddenPins=forbiddenPins)
 
             self.connector.Bind(wx.EVT_CLOSE, self.OnProxySaveConnector)
             self.connector.ShowModal()

@@ -6,11 +6,9 @@ from Adapter import AdapterEditorDialog
 class MainAdapterPanel(wx.Panel):
 
     def __init__(self, parent):
-        """Constructor"""
-        wx.Panel.__init__(self, parent)
+        super(MainAdapterPanel, self).__init__(parent)
         parent.active_panel = "Adapter"
         self.directory = parent.directory
-        # self = wx.Panel(self, wx.ID_ANY)
 
         self.nModules = 6
         self.readAdapterList()
@@ -88,9 +86,7 @@ class MainAdapterPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.onRemoveAssignClicked, self.btnRemoveAssignments)
         self.Bind(wx.EVT_BUTTON, self.onAssignAdptClicked, self.btnAssignAdpt)
 
-        # end wxGlade
-
-    def onSearchAdpt(self, event):  # wxGlade: mainFrame.<event_handler>
+    def onSearchAdpt(self, event):
 
         self.lboxAdptChoices.Clear()
         self.lboxAdptInfo.Clear()
@@ -101,7 +97,7 @@ class MainAdapterPanel(wx.Panel):
         self.lboxAdptChoices.Set(reducedAdptList)
         self.lboxAdptChoices.Update()
 
-    def onAdptChoiceSelected(self, event):  # wxGlade: mainFrame.<event_handler>
+    def onAdptChoiceSelected(self, event):
 
         selAdapter = self.lboxAdptChoices.GetString(self.lboxAdptChoices.GetSelection())
         with open("{adapter}/{file}.adt".format(file=selAdapter,**self.directory), "r") as FSO:
@@ -125,19 +121,17 @@ class MainAdapterPanel(wx.Panel):
         if self.lboxAdptChoices.GetSelection() > -1 and self.lctrlModulAssignment.GetFirstSelected() > -1:
             self.btnAssignAdpt.Enable()
 
-    def onNewAdptClicked(self, event):  # wxGlade: mainFrame.<event_handler>
+    def onNewAdptClicked(self, event):
         self.AdapterEditor = AdapterEditorDialog(self)
         self.AdapterEditor.Bind(wx.EVT_CLOSE, self.onAdapterEditorClose)
         self.AdapterEditor.ShowModal()
-        # print("Event handler 'onNewAdptClicked' not implemented!")
-        # event.Skip()
 
     def onAdapterEditorClose(self,event):
         self.readAdapterList()
         self.lboxAdptInfo.Clear()
         event.Skip()
 
-    def onEditAdptClicked(self, event):  # wxGlade: mainFrame.<event_handler>
+    def onEditAdptClicked(self, event):
         selAdapter = self.lboxAdptChoices.GetString(self.lboxAdptChoices.GetSelection())
         self.AdapterEditor = AdapterEditorDialog(self,adptSetting=selAdapter)
         self.AdapterEditor.Bind(wx.EVT_CLOSE, self.onAdapterEditorClose)
@@ -145,7 +139,7 @@ class MainAdapterPanel(wx.Panel):
         self.btnEditAdpt.Disable()
         self.btnDeleteAdpt.Disable()
 
-    def onDeleteAdptClicked(self, event):  # wxGlade: mainFrame.<event_handler>
+    def onDeleteAdptClicked(self, event):
         selAdapter = self.lboxAdptChoices.GetString(self.lboxAdptChoices.GetSelection())
         response = wx.MessageBox('Really?! Soll Adapter "{0}" unwiderruflich gelöscht werden?'.format(selAdapter),
                                  'Info', wx.YES_NO | wx.ICON_WARNING)
@@ -159,12 +153,12 @@ class MainAdapterPanel(wx.Panel):
                     self.lctrlModulAssignment.SetItem(row,1, "" )
             self.dumpModuleSetting()
 
-    def onRemoveAssignClicked(self, event):  # wxGlade: mainFrame.<event_handler>
+    def onRemoveAssignClicked(self, event):
         for i in range(self.lctrlModulAssignment.GetItemCount() ):
             self.lctrlModulAssignment.SetItem(i,1, "" )
         self.dumpModuleSetting()
 
-    def onAssignAdptClicked(self, event):  # wxGlade: mainFrame.<event_handler>
+    def onAssignAdptClicked(self, event):
         selAdapter = self.lboxAdptChoices.GetString(self.lboxAdptChoices.GetSelection())
         selModul = self.lctrlModulAssignment.GetFirstSelected()
 
