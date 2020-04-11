@@ -173,10 +173,12 @@ class BoxCluster():
         y = slice( box["y"], box["y"] + box["h"] )
 
         filename = "{outfolder}/box_at_x{x}_y{y}.png".format(x=box["x"],y=box["y"],
-                                                        outfolder=outfolder)
+                                                             outfolder=outfolder)
 
         new_img = self.image[y, x]
         cv2.imwrite(filename, new_img)
+
+        return filename
 
 
     def extract_data_in_box(self, box):
@@ -184,7 +186,6 @@ class BoxCluster():
         y = slice( box["y"], box["y"] + box["h"] )
 
         new_img = self.image[y, x]
-        # if box["x"] == 487 and box["y"] == 869:
         data = [elm for elm in pytesseract.image_to_string(new_img).splitlines() if elm]
         return data
 
@@ -375,9 +376,12 @@ class BoxClusters():
         cv2.imwrite(outfile ,marked_img)
         return outfile
 
+    def get_cluster_image(self,idx):
+        cb = self.clusters[idx].get_cluster_box(box_coordinates="relative")
+        return self.clusters[idx].crop_image_to_box(cb, self.outfolder)
+
     def get_df_from_cluster(self, idx):
         self.clusters[idx].extract_data_in_cluster()
-        
         return self.clusters[idx].get_table_as_dataframe()
 
 

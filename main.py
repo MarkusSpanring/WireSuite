@@ -29,7 +29,7 @@ class MyPanel(wx.Panel):
 
         self.btnAdptPanel = wx.BitmapButton(self, bitmap=wx.Bitmap("Adapter.png"))
         self.btnAdptPanel.Bind(wx.EVT_BUTTON, self.onAdptPanelSwitch)
-        controlSizer.Add(self.btnAdptPanel, 0, wx.CENTER, 0)
+        controlSizer.Add(self.btnAdptPanel, 0, wx.CENTER , 0)
 
         self.btnWireListPanel = wx.BitmapButton(self, bitmap=wx.Bitmap("WireList.png"))
         self.btnWireListPanel.Bind(wx.EVT_BUTTON, self.onWireListPanelSwitch)

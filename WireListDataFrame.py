@@ -6,7 +6,8 @@ def main():
 
     df = WireListDataFrame()
     df.set_dataframe_from_excel(inputfile)
-    df.export_to_excel("new_out",subheaders=False)
+    print( df.get_sorted_dataframe() )
+    # df.export_to_excel("new_out",subheaders=False)
 
     # writeWireList(df, "test")
 
@@ -17,7 +18,7 @@ class WireListDataFrame():
         self.sub_headers = []
 
     def set_dataframe(self,df):
-        modified_df = f.apply(define_parent_connectors, axis=1 )
+        modified_df = df.apply(define_parent_connectors, axis=1 )
         self.df = modified_df.apply(add_marker, axis=1)
 
     def set_dataframe_from_excel(self, filename):

@@ -30,6 +30,7 @@ class PDFToDataFrameDialog(wx.Dialog):
         self.pdfPages = []
         self.clusters = []
         self.extractedData = pd.DataFrame([])
+        self.extractedImage = wx.Bitmap( wx.Image(1,1,clear=True) )
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -156,8 +157,17 @@ class PDFToDataFrameDialog(wx.Dialog):
     def onSelectClusterClicked(self, event):  # wxGlade: MyDialog.<event_handler>
 
         clusterIdx = int(self.scClusterIdx.GetValue()) - 1
+
+        image_path = self.clusters.get_cluster_image(clusterIdx)
+        img=  wx.Image(image_path, wx.BITMAP_TYPE_ANY)
+        newW = 1200*( img.GetWidth() / img.GetHeight() )
+        self.extractedImage = wx.Bitmap( img.Scale(newW,1200) )
+
         self.extractedData = self.clusters.get_df_from_cluster(clusterIdx)
         self.Close()
+
+    def getImage(self):
+        return self.extractedImage
 
     def getData(self):
         return self.extractedData
