@@ -37,17 +37,21 @@ class WireListGrid(wx.grid.Grid):
     def get_table(self):
         for row in range(self.GetNumberRows()):
             result = {}
-            for col, header in enumerate(self.get_col_headers()):
-                result[header] = self.GetCellValue(row, col)
+            for col in range( self.GetNumberCols() ):
+                result[str(col)] = self.GetCellValue(row, col)
             yield result
 
     def get_dataframe(self):
-        table= []
-        for i in self.get_table():
-            table.append(i)
+        table = []
+        for row in self.get_table():
+            table.append(row)
         df = pd.DataFrame(table)
+
+
         df.replace('', np.nan, inplace=True)
-        df.dropna(inplace=True)
+        # df.dropna(axis=1, how="all", inplace=True)
+        df.dropna(axis=0, how="all", inplace=True)
+
         return df
 
     def set_from_dataframe(self,df,sub_headers=[]):
