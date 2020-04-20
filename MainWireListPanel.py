@@ -40,10 +40,27 @@ class MainWireListPanel(wx.Panel):
         self.btnExport = wx.Button(self.panelBkg, wx.ID_ANY, "Exportieren")
         controlSizer.Add(self.btnExport, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        gridSizer = wx.BoxSizer(wx.HORIZONTAL)
-        mainSizer.Add(gridSizer, 1, wx.EXPAND, 0)
 
-        self.switchPanel = wx.Panel(self, wx.ID_ANY, style=wx.BORDER_RAISED)
+        self.splitWindow = wx.SplitterWindow(self, wx.ID_ANY)
+        self.splitWindow.SetMinimumPaneSize(20)
+        mainSizer.Add(self.splitWindow, 1, wx.EXPAND, 0)
+
+        self.topPanel = wx.lib.scrolledpanel.ScrolledPanel(self.splitWindow, wx.ID_ANY)
+        self.topPanel.SetMinSize((-1, 20))
+        mainSizer.Add(self.topPanel, 1, wx.EXPAND, 0)
+
+        bmpSizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.bmpSideView = wx.StaticBitmap(self.topPanel, wx.ID_ANY, wx.Bitmap(wx.Image(1,1) ))
+
+        bmpSizer.Add(self.bmpSideView, 0, 0, 0)
+
+        self.bottomPanel = wx.Panel(self.splitWindow, wx.ID_ANY)
+
+        gridSizer = wx.BoxSizer(wx.HORIZONTAL)
+        # mainSizer.Add(gridSizer, 1, wx.EXPAND, 0)
+
+        self.switchPanel = wx.Panel(self.bottomPanel, wx.ID_ANY, style=wx.BORDER_RAISED)
         self.switchPanel.SetMinSize((150, 715))
         gridSizer.Add(self.switchPanel, 0, wx.EXPAND | wx.ALL, 5)
 
@@ -61,10 +78,16 @@ class MainWireListPanel(wx.Panel):
         self.connectionBox.AppendColumn("zu", format=wx.LIST_FORMAT_LEFT, width=72)
         switchSizer.Add(self.connectionBox, 0, wx.EXPAND, 0)
 
-        self.wlGrid = WireListGrid(self)
+        self.wlGrid = WireListGrid(self.bottomPanel)
         gridSizer.Add(self.wlGrid, 1, wx.ALL | wx.EXPAND, 5)
 
         self.switchPanel.SetSizer(switchSizer)
+
+        self.bottomPanel.SetSizer(gridSizer)
+
+        self.topPanel.SetSizer(bmpSizer)
+
+        self.splitWindow.SplitHorizontally(self.topPanel, self.bottomPanel, 1)
 
         self.panelBkg.SetSizer(controlSizer)
 
@@ -92,8 +115,8 @@ class MainWireListPanel(wx.Panel):
         self.pdfimporter.ShowModal()
 
     def onPDFImporterClose(self, event):
-
-        # self.bmpSideView.SetBitmap( self.pdfimporter.getImage() )
+        self.bmpSideView.SetBitmap( self.pdfimporter.getImage() )
+        self.topPanel.SetupScrolling()
         self.wlGrid.set_from_dataframe( self.pdfimporter.getData() )
         event.Skip()
 
