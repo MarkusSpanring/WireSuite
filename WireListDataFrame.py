@@ -6,7 +6,13 @@ def main():
 
     df = WireListDataFrame()
     df.set_dataframe_from_excel(inputfile)
-    print( df.get_sorted_dataframe() )
+    tmp = df.get_dataframe(True)
+    print(tmp)
+    df.reorder_endpoints([("X8","K3")])
+    tmp = df.get_dataframe(True)
+    print(tmp)
+
+
     # df.export_to_excel("new_out",subheaders=False)
 
     # writeWireList(df, "test")
