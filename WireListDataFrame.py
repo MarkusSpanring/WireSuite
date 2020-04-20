@@ -16,14 +16,13 @@ class WireListDataFrame():
     def __init__(self):
         self.df = pd.DataFrame([])
         self.sub_headers = []
+        self.connections = [("","")]
 
     def set_dataframe(self,df):
-
         clean_df = pd.DataFrame([i for i in df.values if find_pattern(i)])
         self.df = self.add_meta(clean_df)
 
     def set_dataframe_from_excel(self, filename):
-
         raw_df = pd.read_excel(filename, sheet_name="Drahtliste")
         self.set_dataframe( raw_df.dropna(axis=1,how="all") )
 
@@ -54,7 +53,12 @@ class WireListDataFrame():
         export_df[4] = ">"
         return self.veto( export_df )
 
-    def get_grouped_dataframe(self):
+    def reorder_endpoints(self, new_connections=[]):
+        for start,end in new_connections:
+            for i, row in self.df.iterrows():
+                if row["end_parent"] == start and row["start_parent"] == end:
+                    self.df.loc[i] = switch_endpoints(row)
+        self.df =self.add_meta(self.df)
 
     def _get_sorted_dataframe(self):
         self.sub_headers = []
@@ -179,6 +183,14 @@ def find_header(df):
         if all([ label in row for label in ["von","nr.","zu"] ]):
             return list(rows[i])
     return None
+
+
+def switch_endpoints(row):
+
+    row.at[1], row.at[5] = row.at[5], row.at[1]
+    row.at[0], row.at[6] = row.at[6], row.at[0]
+
+    return row
 
 def insert_line(df,index,string):
 
