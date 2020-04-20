@@ -89,17 +89,8 @@ class WireListDataFrame():
 
         return formated_df
 
-    def get_marker(self):
-        return self.df.apply(add_marker, axis=1)
-
-    def export_to_excel(self, filename, sort_rows = True, subheaders = True):
-
-        if sort_rows and subheaders:
-            export_df = self.get_grouped_dataframe()
-        elif sort_rows and not subheaders:
-            export_df = self.get_sorted_dataframe()
-        else:
-            export_df = self.get_dataframe()
+    def export_to_excel(self, filename, sort_rows = False, subheaders = False):
+        export_df = self.get_dataframe(sort_rows, subheaders)
 
         writer = pd.ExcelWriter(filename+'.xlsx', engine='xlsxwriter')
 
