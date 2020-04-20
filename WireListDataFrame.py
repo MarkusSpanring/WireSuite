@@ -40,20 +40,31 @@ class WireListDataFrame():
 
         return df[cols]
 
-    def get_dataframe(self):
+    def get_dataframe(self, sort_rows = False, subheaders = False):
         self.sub_headers = []
-        return self.veto( self.df )
 
-    def get_sorted_dataframe(self):
-        self.sub_headers = []
-        return self.veto( sort_by_connector(self.df) )
+        if sort_rows and subheaders:
+            export_df = self._get_grouped_dataframe()
+        elif sort_rows and not subheaders:
+            export_df = self._get_sorted_dataframe()
+        else:
+            export_df = self.df
+
+        export_df[2] = "<"
+        export_df[4] = ">"
+        return self.veto( export_df )
 
     def get_grouped_dataframe(self):
 
-        sorted_df = sort_by_connector(self.df)
-        sorted_df[2] = "<"
-        sorted_df[4] = ">"
+    def _get_sorted_dataframe(self):
         self.sub_headers = []
+        sorted_df = sort_by_connector( self.df )
+        self.connections = sorted_df.groupby(["start_parent","end_parent"]).count().index.to_list()
+        return sorted_df
+
+    def _get_grouped_dataframe(self):
+        sorted_df = self._get_sorted_dataframe()
+
         for i,row in sorted_df.iterrows():
             sub_header = row.loc["start_parent"] + " nach " + row.loc["end_parent"]
             if not self.sub_headers:
@@ -66,7 +77,7 @@ class WireListDataFrame():
             sorted_df = insert_line(sorted_df,i,string)
         formated_df = sorted_df.fillna(value="")
 
-        return self.veto( formated_df )
+        return formated_df
 
     def get_marker(self):
         return self.df.apply(add_marker, axis=1)
@@ -147,8 +158,8 @@ def sort_by_connector(df):
     if not all( [i in df.columns for i in ["start_parent","end_parent"]] ):
         modified_df = df.apply(define_parent_connectors, axis=1 )
 
+    # Values sorted by occurrence of start parent
     start_parents = modified_df["start_parent"].value_counts().to_dict()
-    dmodified_df = sort_by_freq(modified_df, "start_parent")
 
     index = []
     for sp in start_parents.keys():
@@ -190,7 +201,7 @@ def find_pattern(row):
         if possible_start:
             try:
                 tmp = float(row[i+2])
-            except ValueError as e:
+            except (ValueError, IndexError) as e:
                 continue
             else:
                 matching_center = True
