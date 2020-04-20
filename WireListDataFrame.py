@@ -18,18 +18,19 @@ class WireListDataFrame():
         self.sub_headers = []
 
     def set_dataframe(self,df):
-        modified_df = df.apply(define_parent_connectors, axis=1 )
-        self.df = modified_df.apply(add_marker, axis=1)
+
+        clean_df = pd.DataFrame([i for i in df.values if find_pattern(i)])
+        self.df = self.add_meta(clean_df)
 
     def set_dataframe_from_excel(self, filename):
         raw_df = pd.read_excel(filename, sheet_name="Drahtliste")
 
-        clean_df = raw_df.dropna(axis=1,how="all")
-        clean_df = clean_df.fillna(value="")
+    def add_meta(self,df):
+        df =df.apply(define_parent_connectors, axis=1)
+        self.connections = df.groupby(["start_parent","end_parent"]).count().index.to_list()
 
-        clean_df = pd.DataFrame([i for i in clean_df.values if find_pattern(i)])
-        clean_df = clean_df.apply(add_marker, axis=1)
-        self.df = clean_df.apply(define_parent_connectors, axis=1 )
+        df.fillna(value="", inplace = True)
+        return df.apply(add_marker, axis=1)
 
     def veto(self,df):
         veto = ["marker","start_parent","end_parent","start_child","end_child"]
