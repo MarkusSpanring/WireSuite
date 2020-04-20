@@ -33,29 +33,6 @@ class MainWireListPanel(wx.Panel):
         self.spacerPanelLeft = wx.Panel(self.panelBkg, wx.ID_ANY)
         controlSizer.Add(self.spacerPanelLeft, 1, wx.EXPAND, 0)
 
-        self.lbStartParent = wx.ListBox(self.panelBkg, wx.ID_ANY, choices=[])
-        self.lbStartParent.SetMinSize((133, 90))
-        controlSizer.Add(self.lbStartParent, 0, wx.ALIGN_CENTER | wx.ALL, 5)
-
-        btnSizer = wx.BoxSizer(wx.VERTICAL)
-        controlSizer.Add(btnSizer, 0, wx.ALIGN_CENTER, 0)
-
-        self.btnSort = wx.Button(self.panelBkg, wx.ID_ANY, "button_7")
-        btnSizer.Add(self.btnSort, 0, wx.ALIGN_CENTER | wx.BOTTOM | wx.LEFT | wx.RIGHT, 5)
-
-        self.btnMoveToStart = wx.Button(self.panelBkg, wx.ID_ANY, "<<")
-        btnSizer.Add(self.btnMoveToStart, 0, wx.ALIGN_CENTER | wx.BOTTOM | wx.LEFT | wx.RIGHT, 5)
-
-        self.btnMoveToEnd = wx.Button(self.panelBkg, wx.ID_ANY, ">>")
-        btnSizer.Add(self.btnMoveToEnd, 0, wx.ALIGN_CENTER | wx.BOTTOM | wx.LEFT | wx.RIGHT, 5)
-
-        self.lbEndParent = wx.ListBox(self.panelBkg, wx.ID_ANY, choices=[])
-        self.lbEndParent.SetMinSize((133, 90))
-        controlSizer.Add(self.lbEndParent, 0, wx.ALIGN_CENTER | wx.ALL, 5)
-
-        self.spacerPanelRight = wx.Panel(self.panelBkg, wx.ID_ANY)
-        controlSizer.Add(self.spacerPanelRight, 1, wx.EXPAND, 0)
-
         self.txtExportName = wx.TextCtrl(self.panelBkg, wx.ID_ANY, "")
         self.txtExportName.SetMinSize((150, 22))
         controlSizer.Add(self.txtExportName, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.ALL, 5)
@@ -63,34 +40,31 @@ class MainWireListPanel(wx.Panel):
         self.btnExport = wx.Button(self.panelBkg, wx.ID_ANY, "Exportieren")
         controlSizer.Add(self.btnExport, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
-        self.splitWindow = wx.SplitterWindow(self, wx.ID_ANY)
-        self.splitWindow.SetMinSize((1200, 600))
-        self.splitWindow.SetMinimumPaneSize(20)
-        mainSizer.Add(self.splitWindow, 1, wx.EXPAND, 0)
+        gridSizer = wx.BoxSizer(wx.HORIZONTAL)
+        mainSizer.Add(gridSizer, 1, wx.EXPAND, 0)
 
-        self.splitWindowP1 = scrolled.ScrolledPanel(self.splitWindow)
-        self.splitWindowP1.SetupScrolling()
-        # self.splitWindowP1 = wx.Panel(self.splitWindow, wx.ID_ANY)
-        self.splitWindowP1.SetMinSize((20, 600))
+        self.switchPanel = wx.Panel(self, wx.ID_ANY, style=wx.BORDER_RAISED)
+        self.switchPanel.SetMinSize((150, 715))
+        gridSizer.Add(self.switchPanel, 0, wx.EXPAND | wx.ALL, 5)
 
-        leftSizer = wx.BoxSizer(wx.VERTICAL)
+        switchSizer = wx.BoxSizer(wx.VERTICAL)
 
-        img = wx.Image(1,1,clear=True)
-        self.bmpSideView = wx.StaticBitmap(self.splitWindowP1, wx.ID_ANY, wx.Bitmap(img))
-        leftSizer.Add(self.bmpSideView, 0, 0, 0)
+        self.btnSort = wx.Button(self.switchPanel, wx.ID_ANY, "Sortieren")
+        switchSizer.Add(self.btnSort, 0, wx.ALIGN_CENTER | wx.ALL, 5)
 
-        self.splitWindowP2 = wx.Panel(self.splitWindow, wx.ID_ANY)
+        self.btnSwitch = wx.Button(self.switchPanel, wx.ID_ANY, "Tauschen")
+        switchSizer.Add(self.btnSwitch, 0, wx.ALIGN_CENTER | wx.BOTTOM | wx.LEFT | wx.RIGHT, 5)
 
-        rightSizer = wx.BoxSizer(wx.VERTICAL)
+        self.connectionBox = wx.ListCtrl(self.switchPanel, wx.ID_ANY, style=wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES)
+        self.connectionBox.SetMinSize((150, 658))
+        self.connectionBox.AppendColumn("von", format=wx.LIST_FORMAT_LEFT, width=72)
+        self.connectionBox.AppendColumn("zu", format=wx.LIST_FORMAT_LEFT, width=72)
+        switchSizer.Add(self.connectionBox, 0, wx.EXPAND, 0)
 
-        self.wireList = WireListGrid(self.splitWindowP2)
-        rightSizer.Add(self.wireList, 1, wx.ALL | wx.EXPAND, 5)
+        self.wlGrid = WireListGrid(self)
+        gridSizer.Add(self.wlGrid, 1, wx.ALL | wx.EXPAND, 5)
 
-        self.splitWindowP2.SetSizer(rightSizer)
-
-        self.splitWindowP1.SetSizer(leftSizer)
-
-        self.splitWindow.SplitVertically(self.splitWindowP1, self.splitWindowP2)
+        self.switchPanel.SetSizer(switchSizer)
 
         self.panelBkg.SetSizer(controlSizer)
 
@@ -100,19 +74,17 @@ class MainWireListPanel(wx.Panel):
 
         self.Bind(wx.EVT_BUTTON, self.onImportExcelClicked, self.btnImportExcel)
         self.Bind(wx.EVT_BUTTON, self.onImportPDFClicked, self.btnImportPDF)
-        self.Bind(wx.EVT_BUTTON, self.onSortClicked, self.btnSort)
-        self.Bind(wx.EVT_BUTTON, self.onMoveStartClicked, self.btnMoveToStart)
-        self.Bind(wx.EVT_BUTTON, self.onMoveEndClicked, self.btnMoveToEnd)
         self.Bind(wx.EVT_BUTTON, self.onExportClicked, self.btnExport)
-        # self.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGED, self.onSplitterMoved, self.splitWindow)
-        # end wxGlade
+        self.Bind(wx.EVT_BUTTON, self.onSortClicked, self.btnSort)
+        self.Bind(wx.EVT_BUTTON, self.onSwitchClicked, self.btnSwitch)
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onSwitchClicked, self.connectionBox)
 
     def onImportExcelClicked(self, event):  # wxGlade: MainWireListPanel.<event_handler>
         openFileDialog = wx.FileDialog(self, "Öffnen", "", "", "Excel Dateien (*.xlsx)|*.xlsx",
                                               wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         openFileDialog.ShowModal()
         self.wlDataFrame.set_dataframe_from_excel(openFileDialog.GetPath())
-        self.wireList.set_from_dataframe( self.wlDataFrame.get_dataframe() )
+        self.wlGrid.set_from_dataframe( self.wlDataFrame.get_dataframe() )
 
     def onImportPDFClicked(self, event):  # wxGlade: MainWireListPanel.<event_handler>
         self.pdfimporter = PDFToDataFrameDialog(self.panelBkg)
@@ -121,21 +93,44 @@ class MainWireListPanel(wx.Panel):
 
     def onPDFImporterClose(self, event):
 
-        self.bmpSideView.SetBitmap( self.pdfimporter.getImage() )
-        self.wireList.set_from_dataframe( self.pdfimporter.getData() )
+        # self.bmpSideView.SetBitmap( self.pdfimporter.getImage() )
+        self.wlGrid.set_from_dataframe( self.pdfimporter.getData() )
         event.Skip()
 
     def onSortClicked(self, event):  # wxGlade: MainWireListPanel.<event_handler>
-        print("Event handler 'onSortClicked' not implemented!")
-        event.Skip()
+        self.wlGrid.ClearSelection()
+        data = self.wlGrid.get_dataframe()
+        if data.empty:
+            return
+        self.wlDataFrame.set_dataframe( data )
 
-    def onMoveStartClicked(self, event):  # wxGlade: MainWireListPanel.<event_handler>
-        print("Event handler 'onMoveStartClicked' not implemented!")
-        event.Skip()
+        if self.connectionBox.GetItemCount() == 0:
 
-    def onMoveEndClicked(self, event):  # wxGlade: MainWireListPanel.<event_handler>
-        print("Event handler 'onMoveEndClicked' not implemented!")
-        event.Skip()
+            self.wlGrid.set_from_dataframe(  self.wlDataFrame.get_dataframe(sort_rows=True) )
+            self.fillConnectionBox()
+
+        else:
+            connections = []
+            for row in range(self.connectionBox.GetItemCount() ):
+                start = self.connectionBox.GetItem(itemIdx=row, col=0).GetText()
+                end = self.connectionBox.GetItem(itemIdx=row, col=1).GetText()
+                connections.append( (start,end) )
+
+            self.wlDataFrame.reorder_endpoints(connections)
+            self.wlGrid.set_from_dataframe(  self.wlDataFrame.get_dataframe(sort_rows=True) )
+            self.fillConnectionBox()
+
+    def onSwitchClicked(self, event):  # wxGlade: MainWireListPanel.<event_handler>
+
+        row = self.connectionBox.GetFirstSelected()
+        if row == -1:
+            return
+
+        start = self.connectionBox.GetItem(itemIdx=row, col=0).GetText()
+        end = self.connectionBox.GetItem(itemIdx=row, col=1).GetText()
+
+        self.connectionBox.SetItem(row, 0, end )
+        self.connectionBox.SetItem(row, 1, start )
 
     def onExportClicked(self, event):  # wxGlade: MainWireListPanel.<event_handler>
         print("Event handler 'onExportClicked' not implemented!")
@@ -144,6 +139,13 @@ class MainWireListPanel(wx.Panel):
     def onSplitterMoved(self, event):  # wxGlade: MainWireListPanel.<event_handler>
         print("Event handler 'onSplitterMoved' not implemented!")
         event.Skip()
+
+    def fillConnectionBox(self):
+        self.connectionBox.DeleteAllItems()
+
+        for i, (start,end) in enumerate(self.wlDataFrame.connections):
+            index = self.connectionBox.InsertItem(i, start)
+            self.connectionBox.SetItem(index, 1, end )
 
 # end of class MainWireListPanel
 
