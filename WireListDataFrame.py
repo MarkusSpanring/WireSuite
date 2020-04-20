@@ -23,7 +23,9 @@ class WireListDataFrame():
         self.df = self.add_meta(clean_df)
 
     def set_dataframe_from_excel(self, filename):
+
         raw_df = pd.read_excel(filename, sheet_name="Drahtliste")
+        self.set_dataframe( raw_df.dropna(axis=1,how="all") )
 
     def add_meta(self,df):
         df =df.apply(define_parent_connectors, axis=1)
