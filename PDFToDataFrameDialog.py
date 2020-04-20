@@ -160,8 +160,8 @@ class PDFToDataFrameDialog(wx.Dialog):
 
         image_path = self.clusters.get_cluster_image(clusterIdx)
         img=  wx.Image(image_path, wx.BITMAP_TYPE_ANY)
-        newW = 1200*( img.GetWidth() / img.GetHeight() )
-        self.extractedImage = wx.Bitmap( img.Scale(newW,1200) )
+        newW = 1000*( img.GetWidth() / img.GetHeight() )
+        self.extractedImage = wx.Bitmap( img.Scale(newW,1000) )
 
         self.extractedData = self.clusters.get_df_from_cluster(clusterIdx)
         self.Close()
