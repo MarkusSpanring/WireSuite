@@ -183,14 +183,12 @@ def find_header(df):
 
 
 def switch_endpoints(row):
-
     row.at[1], row.at[5] = row.at[5], row.at[1]
     row.at[0], row.at[6] = row.at[6], row.at[0]
 
     return row
 
 def insert_line(df,index,string):
-
     line = pd.DataFrame(columns=df.columns,index=[index])
     line[df.columns[0]] = string
 
@@ -203,19 +201,13 @@ def find_pattern(row):
             return (i-1,i+1,i+3)
 
     for i, element in enumerate(row):
-
         possible_start = any([ sym in str(element) for sym in [".","X","K","S"] ])
         matching_center = False
         matching_end = False
         if possible_start:
-            try:
-                tmp = float(row[i+2])
-            except (ValueError, IndexError) as e:
-                continue
-            else:
-                matching_center = True
 
             try:
+                matching_center = row[i+2] != ""
                 matching_end = any([ sym in str(row[i+4]) for sym in [".","X","K","S"] ])
             except IndexError as e:
                 continue
