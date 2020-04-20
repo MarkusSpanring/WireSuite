@@ -59,6 +59,13 @@ class WireListDataFrame():
         export_df[4] = ">"
         return self.veto( export_df )
 
+    def find_connections(self,start,end):
+        entries = []
+        for idx,row in self.df.iterrows():
+            if row["start_parent"] == start and row["end_parent"] == end:
+                entries.append(idx)
+        return entries
+
     def reorder_endpoints(self, new_connections=[]):
         for start,end in new_connections:
             for i, row in self.df.iterrows():

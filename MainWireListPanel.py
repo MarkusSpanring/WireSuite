@@ -101,6 +101,8 @@ class MainWireListPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.onSortClicked, self.btnSort)
         self.Bind(wx.EVT_BUTTON, self.onSwitchClicked, self.btnSwitch)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onSwitchClicked, self.connectionBox)
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onConnectionSelected, self.connectionBox)
+        self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onConnectionDeselected, self.connectionBox)
 
     def onImportExcelClicked(self, event):  # wxGlade: MainWireListPanel.<event_handler>
         openFileDialog = wx.FileDialog(self, "Öffnen", "", "", "Excel Dateien (*.xlsx)|*.xlsx",
@@ -108,19 +110,23 @@ class MainWireListPanel(wx.Panel):
         openFileDialog.ShowModal()
         self.wlDataFrame.set_dataframe_from_excel(openFileDialog.GetPath())
         self.wlGrid.set_from_dataframe( self.wlDataFrame.get_dataframe() )
+        self.wlGrid.ClearSelection()
 
     def onImportPDFClicked(self, event):  # wxGlade: MainWireListPanel.<event_handler>
         self.pdfimporter = PDFToDataFrameDialog(self.panelBkg)
         self.pdfimporter.Bind(wx.EVT_CLOSE, self.onPDFImporterClose)
         self.pdfimporter.ShowModal()
+        self.wlGrid.ClearSelection()
 
     def onPDFImporterClose(self, event):
         self.bmpSideView.SetBitmap( self.pdfimporter.getImage() )
         self.topPanel.SetupScrolling()
         self.wlGrid.set_from_dataframe( self.pdfimporter.getData() )
+
         event.Skip()
 
-    def onSortClicked(self, event):  # wxGlade: MainWireListPanel.<event_handler>
+    def onSortClicked(self, event):  # wxGlade: MainWireListPanel.<event_haneventdler>
+        self.onConnectionDeselected(event)
         self.wlGrid.ClearSelection()
         data = self.wlGrid.get_dataframe()
         if data.empty:
@@ -128,7 +134,6 @@ class MainWireListPanel(wx.Panel):
         self.wlDataFrame.set_dataframe( data )
 
         if self.connectionBox.GetItemCount() == 0:
-
             self.wlGrid.set_from_dataframe(  self.wlDataFrame.get_dataframe(sort_rows=True) )
             self.fillConnectionBox()
 
@@ -142,9 +147,9 @@ class MainWireListPanel(wx.Panel):
             self.wlDataFrame.reorder_endpoints(connections)
             self.wlGrid.set_from_dataframe(  self.wlDataFrame.get_dataframe(sort_rows=True) )
             self.fillConnectionBox()
+        self.wlGrid.ClearSelection()
 
     def onSwitchClicked(self, event):  # wxGlade: MainWireListPanel.<event_handler>
-
         row = self.connectionBox.GetFirstSelected()
         if row == -1:
             return
@@ -159,9 +164,28 @@ class MainWireListPanel(wx.Panel):
         print("Event handler 'onExportClicked' not implemented!")
         event.Skip()
 
-    def onSplitterMoved(self, event):  # wxGlade: MainWireListPanel.<event_handler>
-        print("Event handler 'onSplitterMoved' not implemented!")
-        event.Skip()
+    def onConnectionSelected(self, event):  # wxGlade: MainWireListPanel.<event_handler>
+        itemIdx = self.connectionBox.GetFirstSelected()
+        start = self.connectionBox.GetItem(itemIdx=itemIdx, col=0).GetText()
+        end = self.connectionBox.GetItem(itemIdx=itemIdx, col=1).GetText()
+
+        #Thats a bit of an overhead. Maybe use wlDF as wlGrid datatype
+        self.wlDataFrame.set_dataframe( self.wlGrid.get_dataframe() )
+
+        rows = self.wlDataFrame.find_connections(start, end)
+        for row in rows:
+            for col in range( self.wlGrid.GetNumberCols() ):
+                self.wlGrid.SetCellBackgroundColour(row,col, "light blue")
+
+        self.wlGrid.ForceRefresh()
+
+    def onConnectionDeselected(self, event):
+        #There should be a function to colour all at once somewhere....
+        for row in range(self.wlGrid.GetNumberRows()):
+            for col in range( self.wlGrid.GetNumberCols() ):
+                self.wlGrid.SetCellBackgroundColour( row,col, "white")
+
+        self.wlGrid.ForceRefresh()
 
     def fillConnectionBox(self):
         self.connectionBox.DeleteAllItems()
