@@ -27,6 +27,7 @@ class PDFToDataFrameDialog(wx.Dialog):
 
         self.PhotoMaxSize = 600
         self.currentPage = -1
+        self.pdfpath = ""
         self.pdfPages = []
         self.clusters = []
         self.extractedData = pd.DataFrame([])
@@ -116,11 +117,10 @@ class PDFToDataFrameDialog(wx.Dialog):
         self.onView()
 
     def onImportPDFClicked(self, event):  # wxGlade: MyDialog.<event_handler>
-        pdfpath = ""
-        dialog = wx.FileDialog(None, "Öffnen", "", "", "Excel Dateien (*.pdf)|*.pdf",
+        dialog = wx.FileDialog(None, "Öffnen", "", "", "PDF Dateien (*.pdf)|*.pdf",
                                      wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         if dialog.ShowModal() == wx.ID_OK:
-            pdfpath = dialog.GetPath()
+            self.pdfpath = dialog.GetPath()
             self.currentPage = 0
             self.btnBack.Disable()
             self.btnForward.Disable()
@@ -129,8 +129,8 @@ class PDFToDataFrameDialog(wx.Dialog):
 
         dialog.Destroy()
 
-        if pdfpath:
-            self.pdfPages = pdfocr.save_images_from_pdf(pdfpath)
+        if self.pdfpath:
+            self.pdfPages = pdfocr.save_images_from_pdf(self.pdfpath)
             if len(self.pdfPages) > 1:
                 self.btnForward.Enable()
 
@@ -171,6 +171,9 @@ class PDFToDataFrameDialog(wx.Dialog):
 
     def getData(self):
         return self.extractedData
+
+    def getPDFPath(self):
+        return self.pdfpath
 
 # end of class PDFToDataFrameGUI
 

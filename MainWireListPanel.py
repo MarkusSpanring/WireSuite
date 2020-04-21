@@ -1,4 +1,5 @@
 import wx
+import os
 
 import wx.lib.scrolledpanel as scrolled
 
@@ -14,6 +15,8 @@ class MainWireListPanel(wx.Panel):
         kwds["style"] = kwds.get("style", 0) | wx.DEFAULT_FRAME_STYLE
         super(MainWireListPanel, self).__init__(parent,size=(1000,600), *args, **kwds)
         parent.active_panel = "WireList"
+
+        self.openedFile = ""
 
         self.wlDataFrame = WireListDataFrame()
 
@@ -33,13 +36,8 @@ class MainWireListPanel(wx.Panel):
         self.spacerPanelLeft = wx.Panel(self.panelBkg, wx.ID_ANY)
         controlSizer.Add(self.spacerPanelLeft, 1, wx.EXPAND, 0)
 
-        self.txtExportName = wx.TextCtrl(self.panelBkg, wx.ID_ANY, "")
-        self.txtExportName.SetMinSize((150, 22))
-        controlSizer.Add(self.txtExportName, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.ALL, 5)
-
         self.btnExport = wx.Button(self.panelBkg, wx.ID_ANY, "Exportieren")
         controlSizer.Add(self.btnExport, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
-
 
         self.splitWindow = wx.SplitterWindow(self, wx.ID_ANY)
         self.splitWindow.SetMinimumPaneSize(20)
@@ -108,7 +106,9 @@ class MainWireListPanel(wx.Panel):
         openFileDialog = wx.FileDialog(self, "Öffnen", "", "", "Excel Dateien (*.xlsx)|*.xlsx",
                                               wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         openFileDialog.ShowModal()
-        self.wlDataFrame.set_dataframe_from_excel(openFileDialog.GetPath())
+        excelfile = openFileDialog.GetPath()
+        self.openedFile = self.getFilename(excelfile)
+        self.wlDataFrame.set_dataframe_from_excel( excelfile )
         self.wlGrid.set_from_dataframe( self.wlDataFrame.get_dataframe() )
         self.wlGrid.ClearSelection()
 
@@ -120,6 +120,7 @@ class MainWireListPanel(wx.Panel):
 
     def onPDFImporterClose(self, event):
         self.bmpSideView.SetBitmap( self.pdfimporter.getImage() )
+        self.openedFile = self.getFilename( self.pdfimporter.getPDFPath() )
         self.topPanel.SetupScrolling()
         self.wlGrid.set_from_dataframe( self.pdfimporter.getData() )
 
@@ -161,8 +162,10 @@ class MainWireListPanel(wx.Panel):
         self.connectionBox.SetItem(row, 1, start )
 
     def onExportClicked(self, event):  # wxGlade: MainWireListPanel.<event_handler>
-        print("Event handler 'onExportClicked' not implemented!")
-        event.Skip()
+        dlg = wx.FileDialog(self, "Drahtliste speichern unter:", ".", self.openedFile, "Ordner", wx.FD_SAVE)
+        if dlg.ShowModal() == wx.ID_OK:
+            print( dlg.GetPath() )
+        dlg.Destroy()
 
     def onConnectionSelected(self, event):  # wxGlade: MainWireListPanel.<event_handler>
         itemIdx = self.connectionBox.GetFirstSelected()
@@ -193,6 +196,10 @@ class MainWireListPanel(wx.Panel):
         for i, (start,end) in enumerate(self.wlDataFrame.connections):
             index = self.connectionBox.InsertItem(i, start)
             self.connectionBox.SetItem(index, 1, end )
+
+    def getFilename(self,path):
+        filename = os.path.basename( path )
+        return os.path.splitext(filename)[0]
 
 # end of class MainWireListPanel
 
