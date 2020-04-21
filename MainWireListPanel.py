@@ -1,5 +1,6 @@
 import wx
 import os
+import shutil
 
 import wx.lib.scrolledpanel as scrolled
 
@@ -107,9 +108,8 @@ class MainWireListPanel(wx.Panel):
         openFileDialog = wx.FileDialog(self, "Öffnen", "", "", "Excel Dateien (*.xlsx)|*.xlsx",
                                               wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         openFileDialog.ShowModal()
-        excelfile = openFileDialog.GetPath()
-        self.openedFile = self.getFilename(excelfile)
-        self.wlDataFrame.set_dataframe_from_excel( excelfile )
+        self.openedFile = openFileDialog.GetPath()
+        self.wlDataFrame.set_dataframe_from_excel( self.openedFile )
         self.wlGrid.set_from_dataframe( self.wlDataFrame.get_dataframe() )
         self.wlGrid.ClearSelection()
         self.bmpSideView.SetBitmap(wx.Bitmap(wx.Image(1,1)))
@@ -122,7 +122,7 @@ class MainWireListPanel(wx.Panel):
 
     def onPDFImporterClose(self, event):
         self.bmpSideView.SetBitmap( self.pdfimporter.getImage() )
-        self.openedFile = self.getFilename( self.pdfimporter.getPDFPath() )
+        self.openedFile = openFileDialog.GetPath()
         self.topPanel.SetupScrolling()
         self.wlGrid.set_from_dataframe( self.pdfimporter.getData() )
 
@@ -164,9 +164,23 @@ class MainWireListPanel(wx.Panel):
         self.connectionBox.SetItem(row, 1, start )
 
     def onExportClicked(self, event):  # wxGlade: MainWireListPanel.<event_handler>
-        dlg = wx.FileDialog(self, "Drahtliste speichern unter:", ".", self.openedFile, "Ordner", wx.FD_SAVE)
+        dlg = wx.FileDialog(self, "Drahtliste speichern unter:", ".",
+                                  self.getFilename( self.openedFile ), "", wx.FD_SAVE)
         if dlg.ShowModal() == wx.ID_OK:
-            print( dlg.GetPath() )
+
+            exportPath = dlg.GetPath()
+            if os.path.exists( exportPath ):
+                shutil.rmtree(exportPath)
+            os.makedirs(exportPath+"/raw")
+            os.makedirs(exportPath+"/Meassages")
+
+            if self.openedFile:
+                shutil.copy(self.openedFile, exportPath+"/raw")
+
+            self.wlDataFrame.set_dataframe( self.wlGrid.get_dataframe() )
+            self.wlDataFrame.export_to_excel(filename=self.getFilename( self.openedFile ),
+                                             outfolder=exportPath)
+
         dlg.Destroy()
 
     def onConnectionSelected(self, event):  # wxGlade: MainWireListPanel.<event_handler>

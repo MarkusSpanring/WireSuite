@@ -25,6 +25,9 @@ class WireListDataFrame():
         self.connections = [("","")]
 
     def set_dataframe(self,df):
+        if df.empty:
+            return
+
         clean_df = pd.DataFrame([i for i in df.values if find_pattern(i)])
         self.df = self.add_meta(clean_df)
 
@@ -34,14 +37,17 @@ class WireListDataFrame():
 
     def add_meta(self,df):
         df =df.apply(define_parent_connectors, axis=1)
-        self.connections = df.groupby(["start_parent","end_parent"]).count().index.to_list()
+        try:
+            self.connections = df.groupby(["start_parent","end_parent"]).count().index.to_list()
+        except KeyError as e:
+            pass
 
         df.fillna(value="", inplace = True)
         return df.apply(add_marker, axis=1)
 
     def veto(self,df):
         veto = ["marker","start_parent","end_parent","start_child","end_child"]
-        cols = [c for c in self.df.columns if not c in veto]
+        cols = [c for c in df.columns if not c in veto]
 
         return df[cols]
 
@@ -55,8 +61,6 @@ class WireListDataFrame():
         else:
             export_df = self.df
 
-        export_df[2] = "<"
-        export_df[4] = ">"
         return self.veto( export_df )
 
     def find_connections(self,start,end):
@@ -82,6 +86,10 @@ class WireListDataFrame():
     def _get_grouped_dataframe(self):
         sorted_df = self._get_sorted_dataframe()
 
+        header = ["Konfektion_A","von","<","nr.",">","zu","Konfektion_B","Querschnitt","Länge(mm)","Draht-Type"]
+        columns = {i:col for i, col in enumerate(header) }
+        sorted_df = sorted_df.rename(columns=columns)
+
         for i,row in sorted_df.iterrows():
             sub_header = row.loc["start_parent"] + " nach " + row.loc["end_parent"]
             if not self.sub_headers:
@@ -89,26 +97,36 @@ class WireListDataFrame():
             elif self.sub_headers[-1][1] != sub_header:
                 self.sub_headers.append( (i+len(self.sub_headers),sub_header) )
 
-
         for i, string in self.sub_headers:
             sorted_df = insert_line(sorted_df,i,string)
         formated_df = sorted_df.fillna(value="")
 
-        return formated_df
+        return formated_df[header]
 
-    def export_to_excel(self, filename, sort_rows = False, subheaders = False):
-        export_df = self.get_dataframe(sort_rows, subheaders)
+    def export_to_excel(self, filename,outfolder=""):
 
-        writer = pd.ExcelWriter(filename+'.xlsx', engine='xlsxwriter')
+        if self.df.empty:
+            return
 
-        export_df.to_excel(writer, sheet_name='Drahtliste',startrow=1,index=False)
+        raw_df = self.get_dataframe()
+        grouped_df = self.get_dataframe(sort_rows=True, subheaders=True)
+
+        filepath = "Drahtliste_{0}.xlsx".format(filename)
+        if outfolder:
+            filepath = "{0}/Drahtliste_{1}.xlsx".format(outfolder, filename)
+
+        writer = pd.ExcelWriter(filepath,
+                                engine='xlsxwriter')
+
+        raw_df.to_excel(writer, sheet_name='Rohdaten',startrow=1,index=False)
+        grouped_df.to_excel(writer, sheet_name='Drahtliste',startrow=1,index=False)
         workbook  = writer.book
         worksheet = writer.sheets['Drahtliste']
         cell_format = workbook.add_format()
         cell_format.set_left(1)
         cell_format.set_right(1)
 
-        for i,width in  enumerate( self.get_column_widths() ):
+        for i,width in  enumerate( self.get_column_widths(grouped_df) ):
             worksheet.set_column(i, i, width,cell_format)
 
         top_format = workbook.add_format({'bold': 1,'border': 6, 'align': 'center'})
@@ -117,16 +135,17 @@ class WireListDataFrame():
 
         worksheet.merge_range('A1:J1', filename, top_format)
         for i, sub_header in self.sub_headers:
-            worksheet.merge_range(i+2,0,i+2,len(self.sub_headers), sub_header, merge_format)
+            worksheet.merge_range(i+2,0,i+2,len(grouped_df.columns)-1, sub_header, merge_format)
 
         writer.save()
 
-    def get_column_widths(self):
-        header = self.df.columns
+    def get_column_widths(self, df):
+        header = df.columns
+
         column_widths = []
         for col,name in enumerate(header):
             col_width = len( str(name) )
-            individuals = self.df[name].value_counts().to_dict().keys()
+            individuals = df[name].value_counts().to_dict().keys()
             for i in individuals:
                 if len(str(i)) > col_width:
                     col_width = len(str(i))
