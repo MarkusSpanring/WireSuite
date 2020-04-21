@@ -15,6 +15,7 @@ class MyPanel(wx.Panel):
         self.directory = {}
         self.directory["adapter"] = "data/adapter"
         self.directory["modules"] = "data/modules"
+        self.directory["wirelists"] = "data/wirelists"
         for d in self.directory.values():
             if not os.path.exists(d):
                 os.makedirs(d)

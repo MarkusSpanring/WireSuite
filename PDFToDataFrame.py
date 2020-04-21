@@ -8,26 +8,38 @@ import copy
 import pdf2image
 
 
-def save_images_from_pdf(filename):
-    folder = filename.split("/")[-1].split(".")[0]
+def save_images_from_pdf(filepath, basefolder = ""):
+    filename = filepath.split("/")[-1].split(".")[0]
+    if basefolder:
+        folder = "/".join([basefolder,filename])
+    else:
+        folder = filename
+
     if os.path.exists( folder ):
         shutil.rmtree(folder)
     os.makedirs(folder)
 
     png_images = []
-    images = pdf2image.convert_from_path(filename,size=(5000,None))
+    images = pdf2image.convert_from_path(filepath,size=(5000,None))
     for pageIdx, image in enumerate(images):
-        imagename ="{folder}/{folder}_page{pagenumber}.png".format(folder=folder,pagenumber=pageIdx)
+        imagename ="{folder}/{filename}_page{pagenumber}.png".format(folder=folder,
+                                                                     filename=filename,
+                                                                     pagenumber=pageIdx)
         image.save(imagename,"PNG")
         png_images.append(imagename)
     return png_images
 
 
-def find_contours_in_image(filename, debug = False):
+def find_contours_in_image(filename, debug = False, basefolder = ""):
     if debug:
-        if os.path.exists( "debug" ):
-            shutil.rmtree("debug")
-        os.makedirs("debug")
+        if basefolder:
+            folder = "/".join([basefolder,"debug"])
+        else:
+            folder = "debug"
+
+        if os.path.exists( folder ):
+            shutil.rmtree(folder)
+        os.makedirs(folder)
 
     cv_image = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
     orig_image = cv2.imread(filename)
@@ -66,9 +78,9 @@ def find_contours_in_image(filename, debug = False):
     (thresh, img_final_bin) = cv2.threshold(img_final_bin, 128,255, cv2.THRESH_BINARY)
 
     if debug:
-        cv2.imwrite("debug/horizontal_lines.jpg",horizontal_lines_img)
-        cv2.imwrite("debug/verticle_lines.jpg",verticle_lines_img)
-        cv2.imwrite("debug/img_final_bin.jpg",img_final_bin)
+        cv2.imwrite(folder+"/horizontal_lines.jpg",horizontal_lines_img)
+        cv2.imwrite(folder+"/verticle_lines.jpg",verticle_lines_img)
+        cv2.imwrite(folder+"/img_final_bin.jpg",img_final_bin)
 
     # Find contours for image, which will detect all the boxes
     contours, hierarchy = cv2.findContours(img_final_bin, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -84,7 +96,7 @@ def find_contours_in_image(filename, debug = False):
 
         cont_img = copy.deepcopy(orig_image)
         cv2.drawContours(cont_img, contours, -1, (0, 0, 255), 2)
-        cv2.imwrite("debug/boxes.jpg",cont_img)
+        cv2.imwrite(folder+"/boxes.jpg",cont_img)
 
     return orig_image, contours
 

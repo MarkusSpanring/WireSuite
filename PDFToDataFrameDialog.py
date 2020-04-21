@@ -17,7 +17,7 @@ import PDFToDataFrame as pdfocr
 
 
 class PDFToDataFrameDialog(wx.Dialog):
-    def __init__(self, parent=None, *args, **kwds):
+    def __init__(self, parent=None, outfolder ="", *args, **kwds):
         # begin wxGlade: PDFToDataFrameGUI.__init__
         kwds["style"] = kwds.get("style", 0) | wx.DEFAULT_FRAME_STYLE
         super(PDFToDataFrameDialog, self).__init__(parent, *args, **kwds)
@@ -27,6 +27,7 @@ class PDFToDataFrameDialog(wx.Dialog):
 
         self.PhotoMaxSize = 600
         self.currentPage = -1
+        self.outfolder = outfolder
         self.pdfpath = ""
         self.pdfPages = []
         self.clusters = []
@@ -82,7 +83,6 @@ class PDFToDataFrameDialog(wx.Dialog):
         self.btnSelectCluster.Disable()
 
     def onPageBackClicked(self, event):  # wxGlade: PDFToDataFrameGUI.<event_handler>
-
         self.btnForward.Enable()
         self.currentPage -= 1
         if (self.currentPage - 1) < 0:
@@ -91,7 +91,6 @@ class PDFToDataFrameDialog(wx.Dialog):
         self.onView()
 
     def onPageForwardClicked(self, event):  # wxGlade: PDFToDataFrameGUI.<event_handler>
-
         self.btnBack.Enable()
         self.currentPage += 1
         if self.currentPage + 1 == len(self.pdfPages):
@@ -100,7 +99,7 @@ class PDFToDataFrameDialog(wx.Dialog):
 
     def onSelectPageClicked(self, event):  # wxGlade: PDFToDataFrameGUI.<event_handler>
         outfolder = os.path.dirname(self.pdfPages[self.currentPage])
-        img, contours = pdfocr.find_contours_in_image(self.pdfPages[self.currentPage])
+        img, contours = pdfocr.find_contours_in_image(self.pdfPages[self.currentPage], basefolder=self.outfolder)
         self.clusters = pdfocr.BoxClusters(img, outfolder = outfolder)
         self.clusters.build_clusters(contours=contours)
 
@@ -112,7 +111,6 @@ class PDFToDataFrameDialog(wx.Dialog):
         self.btnSelectCluster.Enable()
         self.scClusterIdx.SetMax(self.clusters.size())
         self.scClusterIdx.SetValue(1)
-
 
         self.onView()
 
@@ -130,7 +128,7 @@ class PDFToDataFrameDialog(wx.Dialog):
         dialog.Destroy()
 
         if self.pdfpath:
-            self.pdfPages = pdfocr.save_images_from_pdf(self.pdfpath)
+            self.pdfPages = pdfocr.save_images_from_pdf(self.pdfpath, basefolder=self.outfolder)
             if len(self.pdfPages) > 1:
                 self.btnForward.Enable()
 
@@ -141,7 +139,6 @@ class PDFToDataFrameDialog(wx.Dialog):
             self.onView()
 
     def onView(self):
-
         img = wx.Image(self.pdfPages[self.currentPage], wx.BITMAP_TYPE_ANY)
         # scale the image, preserving the aspect ratio
         W = img.GetWidth()
@@ -155,7 +152,6 @@ class PDFToDataFrameDialog(wx.Dialog):
         self.Refresh()
 
     def onSelectClusterClicked(self, event):  # wxGlade: MyDialog.<event_handler>
-
         clusterIdx = int(self.scClusterIdx.GetValue()) - 1
 
         image_path = self.clusters.get_cluster_image(clusterIdx)

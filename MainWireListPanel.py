@@ -16,6 +16,7 @@ class MainWireListPanel(wx.Panel):
         super(MainWireListPanel, self).__init__(parent,size=(1000,600), *args, **kwds)
         parent.active_panel = "WireList"
 
+        self.directory = parent.directory
         self.openedFile = ""
 
         self.wlDataFrame = WireListDataFrame()
@@ -49,7 +50,7 @@ class MainWireListPanel(wx.Panel):
 
         bmpSizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.bmpSideView = wx.StaticBitmap(self.topPanel, wx.ID_ANY, wx.Bitmap(wx.Image(1,1) ))
+        self.bmpSideView = wx.StaticBitmap(self.topPanel, wx.ID_ANY, wx.Bitmap(wx.Image(1,1)) )
 
         bmpSizer.Add(self.bmpSideView, 0, 0, 0)
 
@@ -111,9 +112,10 @@ class MainWireListPanel(wx.Panel):
         self.wlDataFrame.set_dataframe_from_excel( excelfile )
         self.wlGrid.set_from_dataframe( self.wlDataFrame.get_dataframe() )
         self.wlGrid.ClearSelection()
+        self.bmpSideView.SetBitmap(wx.Bitmap(wx.Image(1,1)))
 
     def onImportPDFClicked(self, event):  # wxGlade: MainWireListPanel.<event_handler>
-        self.pdfimporter = PDFToDataFrameDialog(self.panelBkg)
+        self.pdfimporter = PDFToDataFrameDialog(self.panelBkg, outfolder=self.directory["wirelists"])
         self.pdfimporter.Bind(wx.EVT_CLOSE, self.onPDFImporterClose)
         self.pdfimporter.ShowModal()
         self.wlGrid.ClearSelection()
@@ -126,7 +128,7 @@ class MainWireListPanel(wx.Panel):
 
         event.Skip()
 
-    def onSortClicked(self, event):  # wxGlade: MainWireListPanel.<event_haneventdler>
+    def onSortClicked(self, event):
         self.onConnectionDeselected(event)
         self.wlGrid.ClearSelection()
         data = self.wlGrid.get_dataframe()
