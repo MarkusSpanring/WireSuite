@@ -3,9 +3,14 @@ import numpy as np
 import pandas as pd
 import os
 import shutil
-import pytesseract
 import copy
 import pdf2image
+import platform
+import pytesseract
+
+if platform.system() == "Windows":
+    pytesseract.pytesseract.tesseract_cmd=r'C:\Tesseract-OCR\tesseract.exe'
+
 
 
 def save_images_from_pdf(filepath, basefolder = ""):
