@@ -172,14 +172,17 @@ class MainWireListPanel(wx.Panel):
             if os.path.exists( exportPath ):
                 shutil.rmtree(exportPath)
             os.makedirs(exportPath+"/raw")
-            os.makedirs(exportPath+"/Meassages")
+            os.makedirs(exportPath+"/Messages")
 
             if self.openedFile:
                 shutil.copy(self.openedFile, exportPath+"/raw")
 
             self.wlDataFrame.set_dataframe( self.wlGrid.get_dataframe() )
+            self.wlDataFrame.export_markers(outfolder=exportPath+"/Messages")
+            self.wlDataFrame.export_connections(outfolder=exportPath)
             self.wlDataFrame.export_to_excel(filename=self.getFilename( self.openedFile ),
                                              outfolder=exportPath)
+
 
         dlg.Destroy()
 

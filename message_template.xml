@@ -1,0 +1,77 @@
+<ImageDesign xml:space="default" InternalName="801">
+    <GenericSettings>
+        <ImageMapping>
+            <Map SubImageRef="1">1</Map>
+        </ImageMapping>
+        <Parameters>
+            <ParamSet Name="CJ400 CIJ" Issue="2">
+                <Param Name="Raster" Type="Str">
+                    <![CDATA[1x5 Std Linear]]>
+                </Param>
+                <Param Name="Pitch" Type="Num">365</Param>
+                <Param Name="Delay" Type="Num">0</Param>
+                <Param Name="DeltaHeight" Type="Num">0</Param>
+                <Param Name="PrintCount" Type="Num">279</Param>
+            </ParamSet>
+        </Parameters>
+    </GenericSettings>
+    <Header DesignedFor="CJ400 CIJ">
+        <Units>hmm</Units>
+    </Header>
+    <SubImage ImageReference="1">
+        <SubHeader FormatName="1x5 western fixed">
+            <ImageWidth>3687</ImageWidth>
+            <ImageHeight>183</ImageHeight>
+            <XRes>0.02740</XRes>
+            <MaxImageHeight>183</MaxImageHeight>
+            <ImageRotation>0</ImageRotation>
+            <ImageMultiStroke>1</ImageMultiStroke>
+            <ImageMirror>FALSE</ImageMirror>
+            <ImageInverse>FALSE</ImageInverse>
+        </SubHeader>
+        <Field Name="Field 1">
+            <X>0</X>
+            <Y>0</Y>
+            <W>3687</W>
+            <H>183</H>
+            <Orientation>0</Orientation>
+            <Mirror>FALSE</Mirror>
+            <Inverse>FALSE</Inverse>
+            <MultiStroke>1</MultiStroke>
+            <FldType>FixedText</FldType>
+            <CalcData>
+                <![CDATA[${info}]]>
+            </CalcData>
+            <Data>
+                <Object Index="0">
+                    <DataType>0</DataType>
+                    <MaxNoOfChars>17</MaxNoOfChars>
+                    <Default>
+                        <![CDATA[${info}]]>
+                    </Default>
+                    <VarText>
+                        <Prompt>
+                            <![CDATA[Geben Sie Daten ein]]>
+                        </Prompt>
+                        <UserEnterData>
+                            <![CDATA[${info}]]>
+                        </UserEnterData>
+                        <PromptAtCoder>FALSE</PromptAtCoder>
+                        <ResetOnSel>ContinueWithCurrentVal</ResetOnSel>
+                    </VarText>
+                </Object>
+            </Data>
+            <Text>
+                <Font>
+                    <Face>
+                        <![CDATA[Linx 5 High]]>
+                    </Face>
+                    <Family>Modern</Family>
+                    <Pitch>5</Pitch>
+                </Font>
+                <Bold>0</Bold>
+                <Escapement>0</Escapement>
+            </Text>
+        </Field>
+    </SubImage>
+</ImageDesign>

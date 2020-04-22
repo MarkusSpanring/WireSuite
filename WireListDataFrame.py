@@ -1,5 +1,5 @@
+import string
 import pandas as pd
-
 
 def main():
     inputfile = "Drahtliste_3ED00334R26-000.xlsx"
@@ -83,14 +83,18 @@ class WireListDataFrame():
         self.connections = sorted_df.groupby(["start_parent","end_parent"]).count().index.to_list()
         return sorted_df
 
-    def _get_grouped_dataframe(self):
-        sorted_df = self._get_sorted_dataframe()
+    def _get_grouped_dataframe(self, sort_rows=True):
+
+        if sort_rows:
+            grouped_df = self._get_sorted_dataframe()
+        else:
+            grouped_df = self.df
 
         header = ["Konfektion_A","von","<","nr.",">","zu","Konfektion_B","Querschnitt","Länge(mm)","Draht-Type"]
         columns = {i:col for i, col in enumerate(header) }
-        sorted_df = sorted_df.rename(columns=columns)
+        grouped_df = grouped_df.rename(columns=columns)
 
-        for i,row in sorted_df.iterrows():
+        for i,row in grouped_df.iterrows():
             sub_header = row.loc["start_parent"] + " nach " + row.loc["end_parent"]
             if not self.sub_headers:
                 self.sub_headers.append( (i+len(self.sub_headers),sub_header) )
@@ -98,12 +102,32 @@ class WireListDataFrame():
                 self.sub_headers.append( (i+len(self.sub_headers),sub_header) )
 
         for i, string in self.sub_headers:
-            sorted_df = insert_line(sorted_df,i,string)
-        formated_df = sorted_df.fillna(value="")
+            grouped_df = insert_line(grouped_df,i,string)
+        formated_df = grouped_df.fillna(value="")
 
         return formated_df[header]
 
-    def export_to_excel(self, filename,outfolder=""):
+    def export_connections(self,outfolder):
+        filepath = get_filepath(outfolder, "connections.lst")
+
+        columns = ["start_parent","start_child","end_parent","end_child"]
+        connections_df = self.df[columns]
+
+        connections_df.to_pickle(filepath)
+
+    def export_markers(self,outfolder=""):
+        with open("message_template.xml","r") as FSO:
+            message = string.Template(FSO.read())
+
+        for i,marker in enumerate( self.df["marker"] ):
+
+            content = message.substitute(info = marker)
+
+            filepath = get_filepath(outfolder, "{0}.Message.xml".format(i+100))
+            with open(filepath,"w") as FSO:
+                FSO.write(content)
+
+    def export_to_excel(self, filename, outfolder=""):
 
         if self.df.empty:
             return
@@ -111,9 +135,7 @@ class WireListDataFrame():
         raw_df = self.get_dataframe()
         grouped_df = self.get_dataframe(sort_rows=True, subheaders=True)
 
-        filepath = "Drahtliste_{0}.xlsx".format(filename)
-        if outfolder:
-            filepath = "{0}/Drahtliste_{1}.xlsx".format(outfolder, filename)
+        filepath = get_filepath(outfolder,"Drahtliste_{0}.xlsx".format(filename))
 
         writer = pd.ExcelWriter(filepath,
                                 engine='xlsxwriter')
@@ -151,6 +173,12 @@ class WireListDataFrame():
                     col_width = len(str(i))
             yield col_width + 1
 
+def get_filepath(outfolder, filename):
+    filepath = filename
+    if outfolder:
+        filepath = "/".join([outfolder,filename])
+
+    return filepath
 
 def writeWireList(df, filename):
 
