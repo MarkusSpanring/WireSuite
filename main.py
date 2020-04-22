@@ -3,6 +3,7 @@ import os
 import json
 from MainAdapterPanel import MainAdapterPanel
 from MainWireListPanel import MainWireListPanel
+from MainConnectionAliasPanel import MainConnectionAliasPanel
 
 ########################################################################
 class MyPanel(wx.Panel):
@@ -36,8 +37,12 @@ class MyPanel(wx.Panel):
         self.btnWireListPanel.Bind(wx.EVT_BUTTON, self.onWireListPanelSwitch)
         controlSizer.Add(self.btnWireListPanel, 0, wx.CENTER, 0)
 
+        self.ConnectionAliasPanel = wx.BitmapButton(self, bitmap=wx.Bitmap("ConnectionAlias.png"))
+        self.ConnectionAliasPanel.Bind(wx.EVT_BUTTON, self.onConnectionAliasPanelSwitch)
+        controlSizer.Add(self.ConnectionAliasPanel, 0, wx.CENTER, 0)
+
         self.removeButton = wx.Button(self,  wx.ID_ANY,"Remove")
-        self.removeButton.Bind(wx.EVT_BUTTON, self.onRemoveWidget)
+        self.removeButton.Bind(wx.EVT_BUTTON, self.removeActivePanel)
         controlSizer.Add(self.removeButton, 0, wx.CENTER, 0)
 
         self.mainSizer.Add(controlSizer, 0, wx.CENTER,0)
@@ -49,22 +54,30 @@ class MyPanel(wx.Panel):
     #----------------------------------------------------------------------
     def onAdptPanelSwitch(self, event):
         """"""
-        self.onRemoveWidget(event)
-        self.pnlAdapterAssignment = MainAdapterPanel(self)
-        self.widgetSizer.Add(self.pnlAdapterAssignment, 0, wx.ALL, 5)
-        self.frame.fSizer.Layout()
-        self.frame.Fit()
+        if self.active_panel == "Adapter":
+            return
+
+        self.removeActivePanel(event)
+        self.drawPanel( MainAdapterPanel(self) )
 
     #----------------------------------------------------------------------
     def onWireListPanelSwitch(self, event):
         """"""
-        self.onRemoveWidget(event)
-        self.pnlWireList = MainWireListPanel(self)
-        self.widgetSizer.Add(self.pnlWireList, 0, wx.ALL, 5)
-        self.frame.fSizer.Layout()
-        self.frame.Fit()
+        if self.active_panel == "WireList":
+            return
 
-    def onRemoveWidget(self, event):
+        self.removeActivePanel(event)
+        self.drawPanel( MainWireListPanel(self) )
+
+    def onConnectionAliasPanelSwitch(self, event):
+        """"""
+        if self.active_panel == "ConnectionAlias":
+            return
+
+        self.removeActivePanel(event)
+        self.drawPanel( MainConnectionAliasPanel(self) )
+
+    def removeActivePanel(self, event):
         """"""
         children = len(self.widgetSizer.GetChildren())
 
@@ -76,6 +89,11 @@ class MyPanel(wx.Panel):
             self.frame.fSizer.Layout()
             self.frame.Fit()
         self.active_panel = ""
+
+    def drawPanel(self, panel):
+        self.widgetSizer.Add(panel, 0, wx.ALL, 5)
+        self.frame.fSizer.Layout()
+        self.frame.Fit()
 
 ########################################################################
 class MyFrame(wx.Frame):
