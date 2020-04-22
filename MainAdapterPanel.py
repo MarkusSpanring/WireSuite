@@ -1,7 +1,7 @@
 import wx
 import os
 import json
-from Adapter import AdapterEditorDialog
+from AdapterDialog import AdapterEditorDialog
 
 class MainAdapterPanel(wx.Panel):
 
@@ -124,7 +124,7 @@ class MainAdapterPanel(wx.Panel):
     def onNewAdptClicked(self, event):
         self.AdapterEditor = AdapterEditorDialog(self)
         self.AdapterEditor.Bind(wx.EVT_CLOSE, self.onAdapterEditorClose)
-        self.AdapterEditor.ShowModal()
+        self.AdapterEditor.Show()
 
     def onAdapterEditorClose(self,event):
         self.readAdapterList()

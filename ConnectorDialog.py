@@ -68,7 +68,7 @@ class ConnectorData():
 
 
 
-class ConnectorEditorDialog(wx.Dialog):
+class ConnectorEditorDialog(wx.Frame):
 
     def __init__(self, parent, name = "", forbiddenPins=[], nPins = 0, maxPins=37, data=[]):
         super(ConnectorEditorDialog, self).__init__(parent, title='Neuer Stecker')
@@ -130,6 +130,7 @@ class ConnectorEditorDialog(wx.Dialog):
 
 
     def onSaveClicked(self, event):
+        self.fillDataContainer()
         self.Close()
 
     def generateListBox(self,e):
