@@ -14,6 +14,7 @@ class MyPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
 
         self.directory = {}
+        self.directory["tmp"] = "data/tmp"
         self.directory["adapter"] = "data/adapter"
         self.directory["modules"] = "data/modules"
         self.directory["wirelists"] = "data/wirelists"
