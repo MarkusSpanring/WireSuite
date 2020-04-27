@@ -42,10 +42,6 @@ class MyPanel(wx.Panel):
         self.ConnectionAliasPanel.Bind(wx.EVT_BUTTON, self.onConnectionAliasPanelSwitch)
         controlSizer.Add(self.ConnectionAliasPanel, 0, wx.CENTER, 0)
 
-        self.removeButton = wx.Button(self,  wx.ID_ANY,"Remove")
-        self.removeButton.Bind(wx.EVT_BUTTON, self.removeActivePanel)
-        controlSizer.Add(self.removeButton, 0, wx.CENTER, 0)
-
         self.mainSizer.Add(controlSizer, 0, wx.CENTER,0)
         self.mainSizer.Add(wx.StaticLine(self, wx.ID_ANY), 0, wx.EXPAND, 0)
         self.mainSizer.Add(self.widgetSizer, 0, wx.CENTER|wx.ALL, 10)
