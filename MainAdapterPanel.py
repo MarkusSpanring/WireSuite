@@ -133,7 +133,7 @@ class MainAdapterPanel(wx.Panel):
 
     def onEditAdptClicked(self, event):
         selAdapter = self.lboxAdptChoices.GetString(self.lboxAdptChoices.GetSelection())
-        self.AdapterEditor = AdapterEditorDialog(self,adptSetting=selAdapter)
+        self.AdapterEditor = AdapterEditorDialog(self,adptFile=selAdapter)
         self.AdapterEditor.Bind(wx.EVT_CLOSE, self.onAdapterEditorClose)
         self.AdapterEditor.Show()
         self.btnEditAdpt.Disable()

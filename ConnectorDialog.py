@@ -34,18 +34,22 @@ class ConnectorList(wx.ListCtrl,
             self.SetItem(index, 1, data[i,1] )
 
 
-class ConnectorData():
+class Connector():
 
     def __init__(self,name="",nPins=0,data=[]):
         self.name = name
         self.nPins = nPins
         self.data = data
+        self.valid = False
+
+    def validate(self):
+        self.valid = True
 
     def getUsedPins(self):
         return self.data[:,1]
 
     def packData(self):
-        
+
         connections = {}
         for item in self.data:
             connections[item[0]] = item[1]
@@ -76,7 +80,7 @@ class ConnectorEditorDialog(wx.Frame):
         self.maxPins = maxPins - len(forbiddenPins)
         self.forbiddenPins =  forbiddenPins
         self.availablePins = [str(i) for i in range(1,maxPins+1) if not str(i) in self.forbiddenPins]
-        self.dataContainer = ConnectorData(name=name,nPins = nPins,  data=data)
+        self.Connector = Connector(name=name,nPins = nPins,  data=data)
 
         self.InitUI()
         self.Centre()
@@ -91,12 +95,12 @@ class ConnectorEditorDialog(wx.Frame):
         inputBox = wx.BoxSizer(wx.HORIZONTAL)
         stStkBez = wx.StaticText(self.panel, label='Steckerbezeichnung')
         inputBox.Add(stStkBez, flag=wx.RIGHT|wx.CENTER, border=8)
-        self.tcStkBez = wx.TextCtrl(self.panel, value=self.dataContainer.name)
+        self.tcStkBez = wx.TextCtrl(self.panel, value=self.Connector.name)
         inputBox.Add(self.tcStkBez, proportion=1)
 
         stKontakte = wx.StaticText(self.panel, label='Kontakte')
         inputBox.Add(stKontakte, flag=wx.LEFT|wx.CENTER, border=8)
-        self.scKontakte = wx.SpinCtrl(self.panel, value=str(self.dataContainer.nPins), min=1, max=self.maxPins)
+        self.scKontakte = wx.SpinCtrl(self.panel, value=str(self.Connector.nPins), min=1, max=self.maxPins)
         inputBox.Add(self.scKontakte, 1)
         vbox.Add(inputBox, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=10)
 
@@ -107,8 +111,6 @@ class ConnectorEditorDialog(wx.Frame):
         self.connectorList = ConnectorList(self.panel)
         self.connectorList.InsertColumn(0, 'Steckerkontakt', width=150)
         self.connectorList.InsertColumn(1, 'Interner Kontakt', width=150)
-        if len(self.dataContainer.data) > 0:
-            self.connectorList.setFullListData(self.dataContainer.data)
 
         hbox3.Add(self.connectorList, proportion=1, flag=wx.EXPAND, border=10)
         vbox.Add(hbox3, proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND, border=10)
@@ -128,13 +130,17 @@ class ConnectorEditorDialog(wx.Frame):
 
         self.panel.SetSizer(vbox)
 
+        if len(self.Connector.data) > 0:
+            self.connectorList.setFullListData(self.Connector.data)
+            self.btnSave.Enable()
+
 
     def onSaveClicked(self, event):
-        self.fillDataContainer()
+        self.setConnector(validate = True)
         self.Close()
 
     def generateListBox(self,e):
-
+        self.btnSave.Disable()
         name = self.tcStkBez.GetValue()
         nPins = self.scKontakte.GetValue()
         data = np.empty( (nPins,2),dtype=object )
@@ -145,7 +151,7 @@ class ConnectorEditorDialog(wx.Frame):
             data[i,1]=self.availablePins[i]
 
         self.connectorList.setFullListData(data)
-        self.fillDataContainer()
+        self.setConnector()
         if nPins > 0 and name:
             self.btnSave.Enable()
 
@@ -160,12 +166,14 @@ class ConnectorEditorDialog(wx.Frame):
         data[row_id,col_id] = new_data
 
         self.connectorList.setFullListData(data)
-        self.fillDataContainer()
+        self.setConnector()
 
-    def fillDataContainer(self):
-        self.dataContainer.name = self.tcStkBez.GetValue()
-        self.dataContainer.nPins = self.scKontakte.GetValue()
-        self.dataContainer.data = self.connectorList.getFullListData()
+    def setConnector(self, validate=False):
+        self.Connector.name = self.tcStkBez.GetValue()
+        self.Connector.nPins = self.scKontakte.GetValue()
+        self.Connector.data = self.connectorList.getFullListData()
+        if validate:
+            self.Connector.validate()
 
 def main():
 

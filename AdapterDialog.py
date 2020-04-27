@@ -3,7 +3,7 @@ import wx.lib.mixins.listctrl
 import json
 import os
 import time
-from ConnectorDialog import ConnectorEditorDialog, ConnectorData
+from ConnectorDialog import ConnectorEditorDialog, Connector
 
 
 class AutoWidthListCtrl(wx.ListCtrl,
@@ -17,15 +17,15 @@ class AutoWidthListCtrl(wx.ListCtrl,
 
 class AdapterEditorDialog(wx.Frame):
 
-    def __init__(self, parent=None, adptSetting = "", *args, **kw):
+    def __init__(self, parent=None, adptFile = "", *args, **kw):
         super(AdapterEditorDialog, self).__init__( parent,size=(400,300),*args, **kw)
         self.directory = parent.directory
         self.InitUI()
-        self.connector = None
-        self.connectorIdx = 0
-        self.containers = []
-        if adptSetting:
-            self.loadAdptSetting(adptSetting)
+        self.ConEditor = None
+        self.ConIdx = 0
+        self.ConList = []
+        if adptFile:
+            self.loadAdptFile(adptFile)
 
     def InitUI(self):
 
@@ -81,33 +81,34 @@ class AdapterEditorDialog(wx.Frame):
         self.SetTitle('Neuer Adapter')
         self.Centre()
 
-    def loadAdptSetting(self, adptSetting):
-
-        with open("{adapter}/{file}.adt".format(file=adptSetting,**self.directory), "r") as FSO:
+    def loadAdptFile(self, adptFile):
+        filepath = "{adapter}/{file}.adt".format(file=adptFile,**self.directory)
+        with open(filepath, "r") as FSO:
             setting = json.load(FSO)
+        os.remove(filepath)
 
         for con, data in setting.items():
-            tmp = ConnectorData()
+            tmp = Connector()
             tmp.unpackData(name=con, packedData=data)
-            self.containers.append(tmp)
+            self.ConList.append(tmp)
 
-        for i, con in enumerate(self.containers):
+        for i, con in enumerate(self.ConList):
             index = self.listbox.InsertItem(i, con.name )
             self.listbox.SetItem(index, 1, str(con.nPins)+" pol." )
-        self.tcAdptName.SetValue(adptSetting)
+        self.tcAdptName.SetValue(adptFile)
         self.saveBtn.Enable()
 
     def getUsedPins(self):
         usedPins = []
 
-        for container in self.containers:
+        for container in self.ConList:
             usedPins += list(container.getUsedPins())
 
         usedPins = list(set([i for i in usedPins]))
         return usedPins
 
     def OnAdapterNameChanged(self, e):
-        if len(self.containers) > 0 and self.tcAdptName.GetValue():
+        if len(self.ConList) > 0 and self.tcAdptName.GetValue():
             self.saveBtn.Enable()
         else:
             self.saveBtn.Disable()
@@ -122,7 +123,7 @@ class AdapterEditorDialog(wx.Frame):
 
     def OnSaveClicked(self, e):
         packedData = {}
-        for con in self.containers:
+        for con in self.ConList:
 
             if not con.name in packedData:
                 packedData.update(con.packData())
@@ -139,50 +140,52 @@ class AdapterEditorDialog(wx.Frame):
 
     def OnNewConnectorClicked(self, e):
 
-        if not self.connector:
-            self.connector = ConnectorEditorDialog(self,forbiddenPins=self.getUsedPins())
-            self.connector.Bind(wx.EVT_CLOSE, self.OnProxySaveConnector)
-            self.connectorIdx = self.listbox.GetItemCount()
-            self.connector.Show()
+        if not self.ConEditor:
+            self.ConEditor = ConnectorEditorDialog(self,forbiddenPins=self.getUsedPins())
+            self.ConEditor.Bind(wx.EVT_CLOSE, self.OnConnectorEditorClosed)
+            self.ConIdx = self.listbox.GetItemCount()
+            self.ConEditor.Show()
 
 
     def OnEditConnectorClicked(self, e):
 
-        if not self.connector:
-            self.connectorIdx = self.listbox.GetFocusedItem()
-            forbiddenPins = [i for i in self.getUsedPins() if i not in self.containers[self.connectorIdx].getUsedPins()]
+        if not self.ConEditor:
+            self.ConIdx = self.listbox.GetFocusedItem()
+            forbiddenPins = [i for i in self.getUsedPins() if i not in self.ConList[self.ConIdx].getUsedPins()]
 
-            self.connector = ConnectorEditorDialog(self,
-                                                   name = self.containers[self.connectorIdx].name,
-                                                   nPins= self.containers[self.connectorIdx].nPins,
-                                                   data = self.containers[self.connectorIdx].data,
+            self.ConEditor = ConnectorEditorDialog(self, name = self.ConList[self.ConIdx].name,
+                                                   nPins= self.ConList[self.ConIdx].nPins,
+                                                   data = self.ConList[self.ConIdx].data,
                                                    forbiddenPins=forbiddenPins)
 
-            self.connector.Bind(wx.EVT_CLOSE, self.OnProxySaveConnector)
-            self.connector.Show()
+            self.ConEditor.Bind(wx.EVT_CLOSE, self.OnConnectorEditorClosed)
+            self.ConEditor.Show()
 
     def OnDeleteConnectorClicked(self, e):
-        if not self.connector:
-            self.connectorIdx = self.listbox.GetFocusedItem()
-            self.listbox.DeleteItem(self.connectorIdx )
-            self.containers.pop(self.connectorIdx)
-        if len(self.containers) == 0:
+        if not self.ConEditor:
+            self.ConIdx = self.listbox.GetFocusedItem()
+            self.listbox.DeleteItem(self.ConIdx )
+            self.ConList.pop(self.ConIdx)
+        if len(self.ConList) == 0:
             self.ediBtn.Disable()
             self.delBtn.Disable()
             self.saveBtn.Disable()
 
-    def OnProxySaveConnector(self, e):
+    def OnConnectorEditorClosed(self, e):
+        if not self.ConEditor.Connector.valid:
+            e.Skip()
+            return
 
-        if self.connectorIdx < len(self.containers):
-            self.containers[self.connectorIdx] = self.connector.dataContainer
-            self.listbox.DeleteItem(self.connectorIdx )
+        if self.ConIdx < len(self.ConList):
+            self.ConList[self.ConIdx] = self.ConEditor.Connector
+            self.listbox.DeleteItem(self.ConIdx )
         else:
-            self.containers.append(self.connector.dataContainer)
+            self.ConList.append(self.ConEditor.Connector)
 
-        index = self.listbox.InsertItem(self.connectorIdx, self.connector.dataContainer.name )
-        self.listbox.SetItem(index, 1, str(self.connector.dataContainer.nPins)+" pol." )
+        index = self.listbox.InsertItem(self.ConIdx, self.ConEditor.Connector.name )
+        self.listbox.SetItem(index, 1, str(self.ConEditor.Connector.nPins)+" pol." )
 
-        if len(self.containers) > 0 and self.tcAdptName.GetValue():
+        if len(self.ConList) > 0 and self.tcAdptName.GetValue():
             self.saveBtn.Enable()
 
         e.Skip()
