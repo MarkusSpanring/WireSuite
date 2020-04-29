@@ -1,6 +1,7 @@
 import wx
 import os
 import json
+import shutil
 from MainAdapterPanel import MainAdapterPanel
 from MainWireListPanel import MainWireListPanel
 from MainConnectionAliasPanel import MainConnectionAliasPanel
@@ -17,13 +18,13 @@ class MyPanel(wx.Panel):
         self.directory["tmp"] = "data/tmp"
         self.directory["adapter"] = "data/adapter"
         self.directory["modules"] = "data/modules"
-        self.directory["wirelists"] = "data/wirelists"
         for d in self.directory.values():
             if not os.path.exists(d):
                 os.makedirs(d)
 
         self.number_of_buttons = 0
-        self.active_panel = "main"
+        self._active_panel = {}
+        self.active_panel = ""
         self.frame = parent
 
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -47,6 +48,25 @@ class MyPanel(wx.Panel):
         self.mainSizer.Add(self.widgetSizer, 0, wx.CENTER|wx.ALL, 10)
 
         self.SetSizer(self.mainSizer)
+
+    @property
+    def active_panel(self):
+        for panel in self._active_panel.keys():
+            if self._active_panel[panel]:
+                return panel
+
+    @active_panel.setter
+    def active_panel(self, panel_name):
+        for panel in self._active_panel.keys():
+            self._active_panel[panel] = False
+
+        if not panel_name in self._active_panel:
+            folder = "/".join([self.directory["tmp"],panel_name])
+            if os.path.exists( folder ):
+                shutil.rmtree(folder)
+            os.makedirs(folder)
+
+        self._active_panel[panel_name] = True
 
     #----------------------------------------------------------------------
     def onAdptPanelSwitch(self, event):

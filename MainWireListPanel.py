@@ -115,7 +115,8 @@ class MainWireListPanel(wx.Panel):
         self.bmpSideView.SetBitmap(wx.Bitmap(wx.Image(1,1)))
 
     def onImportPDFClicked(self, event):  # wxGlade: MainWireListPanel.<event_handler>
-        self.pdfimporter = PDFToDataFrameDialog(self.panelBkg, outfolder=self.directory["wirelists"])
+        self.pdfimporter = PDFToDataFrameDialog(self.panelBkg,
+                                                outfolder="/".join([self.directory["tmp"],"WireList"]))
         self.pdfimporter.Bind(wx.EVT_CLOSE, self.onPDFImporterClose)
         self.pdfimporter.ShowModal()
         self.wlGrid.ClearSelection()
