@@ -15,6 +15,7 @@ class MainConnectionAliasPanel(wx.Panel):
         parent.active_panel = "ConnectionAlias"
 
         self.directory = parent.directory
+        self.tmp_folder = "/".join([self.directory["tmp"], "ConnectionAlias"])
         self.adapters = {}
         self.wires = pd.DataFrame([])
 
@@ -164,6 +165,8 @@ class MainConnectionAliasPanel(wx.Panel):
         if adptIdx == -1 or wireIdx == -1:
             self.btnAssignAlias.Disable()
 
+        self.dumpAliasInfo()
+
     def onCreateTestClicked(self, event):
         print("Event handler 'onCreateTestClicked' not implemented!")
         event.Skip()
@@ -187,8 +190,11 @@ class MainConnectionAliasPanel(wx.Panel):
                         self.adapters["M" + str(i + 1)] = json.load(FSO)
 
             connector_list = []
+            alias = self.readAliasInfo()
             for adpt in self.adapters.keys():
                 for connector in self.adapters[adpt].keys():
+                    if adpt + ":" + connector in alias["adpt"].to_list():
+                        continue
                     nPins = self.adapters[adpt][connector]["nPins"]
                     entry = "{0}:{1} / {2} pol.".format(adpt, connector, nPins)
                     connector_list.append(entry)
@@ -196,6 +202,39 @@ class MainConnectionAliasPanel(wx.Panel):
             connector_list = [u"Prüfspitze"] + connector_list
             self.lbAdapter.Set(connector_list)
             self.lbAdapter.Update()
+
+            wires = []
+            for i, row in alias.iterrows():
+                if row["adpt"]:
+                    self.lcAlias.Append([row["adpt"], row["wire"]])
+                else:
+                    wires.append(row["wire"])
+
+            self.lbWires.Set(wires)
+            self.lbWires.Update()
+
+    def dumpAliasInfo(self):
+
+        alias = []
+        for row in range(self.lcAlias.GetItemCount()):
+            adapter = self.lcAlias.GetItem(itemIdx=row, col=0)
+            wires = self.lcAlias.GetItem(itemIdx=row, col=1)
+            alias.append((adapter.GetText(), wires.GetText()))
+
+        for item in range(self.lbWires.GetCount()):
+            alias.append(("", self.lbWires.GetString(item)))
+
+        alias = pd.DataFrame(alias, columns=["adpt", "wire"])
+        filename = "/".join([self.tmp_folder, "alias.lst"])
+        alias.to_pickle(filename)
+
+    def readAliasInfo(self):
+        filename = "/".join([self.tmp_folder, "alias.lst"])
+        if not os.path.exists(filename):
+            return pd.DataFrame([], columns=["adpt", "wire"])
+
+        return pd.read_pickle(filename)
+
 
 class MyApp(wx.App):
     def OnInit(self):

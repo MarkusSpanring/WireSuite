@@ -1,7 +1,9 @@
 import wx
 import os
 import json
+import pandas as pd
 from AdapterDialog import AdapterEditorDialog
+
 
 class MainAdapterPanel(wx.Panel):
 
@@ -182,6 +184,7 @@ class MainAdapterPanel(wx.Panel):
         for i in range(self.lcMdlAsgn.GetItemCount()):
             self.lcMdlAsgn.SetItem(i, 1, "")
         self.dumpModuleSetting()
+        self.removeAssignedAliases()
 
     def onAssignAdptClicked(self, event):
         adptIdx = self.lbAdptChoices.GetSelection()
@@ -190,6 +193,7 @@ class MainAdapterPanel(wx.Panel):
 
         self.lcMdlAsgn.SetItem(selModul, 1, selAdapter)
         self.dumpModuleSetting()
+        self.removeAssignedAliases()
 
     def readAdapterList(self):
         self.adptList = [i.replace(".adt", "")
@@ -227,5 +231,14 @@ class MainAdapterPanel(wx.Panel):
             adapter = self.lcMdlAsgn.GetItem(itemIdx=row, col=1)
             setting[module.GetText()] = adapter.GetText()
 
-        with open("{modules}/module_setting.mdl".format(**self.directory),"w") as FSO:
+        filename = "{modules}/module_setting.mdl".format(**self.directory)
+        with open(filename, "w") as FSO:
             json.dump(setting, FSO, indent=2)
+
+    def removeAssignedAliases(self):
+        parts = [self.directory["tmp"], "ConnectionAlias", "alias.lst"]
+        filename = "/".join(parts)
+        if os.path.exists(filename):
+            alias = pd.read_pickle(filename)
+            alias["adpt"] = ""
+            alias.to_pickle(filename)
