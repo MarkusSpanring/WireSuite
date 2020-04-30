@@ -200,7 +200,7 @@ class MainAdapterPanel(wx.Panel):
                          for i in os.listdir(self.directory["adapter"])
                          if ".adt" in i]
 
-        if "lboxAdptChoices" in self.__dict__:
+        if "lbAdptChoices" in self.__dict__:
             self.lbAdptChoices.Clear()
             self.lbAdptChoices.Set(self.adptList)
             self.lbAdptChoices.Update()

@@ -2,18 +2,20 @@ import wx.grid
 import wx
 import pandas as pd
 import numpy as np
-from WireListDataFrame import WireListDataFrame
+# from WireListDataFrame import WireListDataFrame
 
-#Initial code from https://stackoverflow.com/questions/28509629
-#by user "Sinan Çetinkaya"
+# Initial code from https://stackoverflow.com/questions/28509629
+# by user "Sinan Çetinkaya"
+
 
 class WireListGrid(wx.grid.Grid):
     def __init__(self, parent):
-        wx.grid.Grid.__init__(self, parent, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0)
+        wx.grid.Grid.__init__(self, parent, wx.ID_ANY,
+                              wx.DefaultPosition, wx.DefaultSize, 0)
         self.Bind(wx.EVT_KEY_DOWN, self.on_key)
         self.Bind(wx.grid.EVT_GRID_CELL_CHANGING, self.on_change)
-        self.Bind(wx.grid.EVT_GRID_LABEL_RIGHT_CLICK, self.on_label_right_click)
-        self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.on_cell_right_click)
+        self.Bind(wx.grid.EVT_GRID_LABEL_RIGHT_CLICK, self.on_label_rclick)
+        self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.on_cell_rclick)
         self.selected_rows = []
         self.selected_cols = []
         self.history = []
@@ -23,21 +25,23 @@ class WireListGrid(wx.grid.Grid):
         self.AutoSizeRows()
 
     def set_header(self):
-        header = ["Konfektion_A","von","<","nr.",">","zu","Konfektion_B","Querschnitt","Länge(mm)","Draht-Type"]
+        header = ["Konfektion_A", "von", "<", "nr.", ">", "zu",
+                  "Konfektion_B", "Querschnitt", "Länge(mm)", "Draht-Type"]
 
-        for idx,cell in enumerate(header):
+        for idx, cell in enumerate(header):
             self.SetColLabelValue(idx, cell)
 
-        for idx in range( len(header), self.GetNumberCols() ):
+        for idx in range(len(header), self.GetNumberCols()):
             self.SetColLabelValue(idx, "")
 
     def get_col_headers(self):
-        return [self.GetColLabelValue(col) for col in range(self.GetNumberCols())]
+        return [self.GetColLabelValue(col)
+                for col in range(self.GetNumberCols())]
 
     def get_table(self):
         for row in range(self.GetNumberRows()):
             result = {}
-            for col in range( self.GetNumberCols() ):
+            for col in range(self.GetNumberCols()):
                 result[str(col)] = self.GetCellValue(row, col)
             yield result
 
@@ -47,20 +51,19 @@ class WireListGrid(wx.grid.Grid):
             table.append(row)
         df = pd.DataFrame(table)
 
-
         df.replace('', np.nan, inplace=True)
         # df.dropna(axis=1, how="all", inplace=True)
         df.dropna(axis=0, how="all", inplace=True)
 
         return df
 
-    def set_from_dataframe(self,df,sub_headers=[]):
+    def from_df(self, df, sub_headers=[]):
         if df.empty:
             return
 
         data = []
-        for i,row in df.iterrows():
-            data.append("\t".join([ str(s) for s in row.to_list()] ))
+        for i, row in df.iterrows():
+            data.append("\t".join([str(s) for s in row.to_list()]))
         data = "\n".join(data)
 
         text_data_object = wx.TextDataObject()
@@ -74,11 +77,10 @@ class WireListGrid(wx.grid.Grid):
         self.SelectAll()
         self.paste(None)
         for row, sh in sub_headers:
-            self.SetCellFont(row,0, wx.Font(14, wx.SWISS, wx.NORMAL, wx.BOLD))
-            self.SetCellValue( row, 0, sh)
+            self.SetCellFont(row, 0, wx.Font(14, wx.SWISS, wx.NORMAL, wx.BOLD))
+            self.SetCellValue(row, 0, sh)
             self.SetCellAlignment(row, 0, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
             self.SetCellSize(row, 0, 1, 10)
-
 
     def add_rows(self, event):
         for row in self.selected_rows:
@@ -122,7 +124,7 @@ class WireListGrid(wx.grid.Grid):
         self.set_header()
         self.AutoSizeColumns()
 
-    def on_cell_right_click(self, event):
+    def on_cell_rclick(self, event):
         menus = [(wx.NewIdRef(count=1), "Ausschneiden", self.cut),
                  (wx.NewIdRef(count=1), "Kopieren", self.copy),
                  (wx.NewIdRef(count=1), "Einfügen", self.paste)]
@@ -138,7 +140,7 @@ class WireListGrid(wx.grid.Grid):
         popup_menu.Destroy()
         return
 
-    def on_label_right_click(self, event):
+    def on_label_rclick(self, event):
         menus = [(wx.NewIdRef(count=1), "Ausschneiden", self.cut),
                  (wx.NewIdRef(count=1), "Kopieren", self.copy),
                  (wx.NewIdRef(count=1), "Einfügen", self.paste),
@@ -149,14 +151,20 @@ class WireListGrid(wx.grid.Grid):
             if not self.IsInSelection(row=event.GetRow(), col=1):
                 self.SelectRow(event.GetRow())
             self.selected_rows = self.GetSelectedRows()
-            menus += [(wx.NewIdRef(count=1), "Reihe hinzufügen", self.add_rows)]
-            menus += [(wx.NewIdRef(count=1), "Reihe löschen", self.delete_rows)]
+
+            menus += [(wx.NewIdRef(count=1), "Reihe hinzufügen",
+                       self.add_rows)]
+            menus += [(wx.NewIdRef(count=1), "Reihe löschen",
+                       self.delete_rows)]
         elif event.GetCol() > -1:
             if not self.IsInSelection(row=1, col=event.GetCol()):
                 self.SelectCol(event.GetCol())
             self.selected_cols = self.GetSelectedCols()
-            menus += [(wx.NewIdRef(count=1), "Spalte hinzufügen", self.add_cols)]
-            menus += [(wx.NewIdRef(count=1), "Spalte löschen", self.delete_cols)]
+
+            menus += [(wx.NewIdRef(count=1), "Spalte hinzufügen",
+                       self.add_cols)]
+            menus += [(wx.NewIdRef(count=1), "Spalte löschen",
+                       self.delete_cols)]
         else:
             return
 
@@ -193,7 +201,7 @@ class WireListGrid(wx.grid.Grid):
             for row, col, attribute in action["cells"]:
                 self.SetCellValue(row, col, attribute["value"])
                 if action["type"] == "delete":
-                    self.SetCellAlignment(row, col, *attribute["alignment"])  # *attribute["alignment"] > horiz, vert
+                    self.SetCellAlignment(row, col, *attribute["alignment"])
 
         elif action["type"] == "delete_rows":
             for row, attribute in reversed(action["rows"]):
@@ -206,7 +214,6 @@ class WireListGrid(wx.grid.Grid):
                 self.InsertCols(col)
                 self.SetColLabelValue(col, attribute["label"])
                 self.SetColSize(col, attribute["size"])
-
 
         elif action["type"] == "add_rows":
             for row in reversed(action["rows"]):
@@ -235,7 +242,7 @@ class WireListGrid(wx.grid.Grid):
             self.paste(event)
 
         # DEL
-        elif event.GetKeyCode() in [8,46]:
+        elif event.GetKeyCode() in [8, 46]:
             self.delete(event)
 
         # Ctrl+A
@@ -262,7 +269,8 @@ class WireListGrid(wx.grid.Grid):
     def get_selection(self):
         """
         Returns selected range's start_row, start_col, end_row, end_col
-        If there is no selection, returns selected cell's start_row=end_row, start_col=end_col
+        If there is no selection, returns selected cell's
+        start_row=end_row, start_col=end_col
         """
         if not len(self.GetSelectionBlockTopLeft()):
             selected_columns = self.GetSelectedCols()
@@ -317,7 +325,8 @@ class WireListGrid(wx.grid.Grid):
             columns = range(start_col, end_col + 1)
             for idx, column in enumerate(columns, 1):
                 if idx == len(columns):
-                    # if we are at the last cell of the row, add new line instead
+                    # if we are at the last cell of the row,
+                    # add new line instead
                     data += self.GetCellValue(row, column) + "\n"
                 else:
                     data += self.GetCellValue(row, column) + "\t"
@@ -377,11 +386,12 @@ class WireListGrid(wx.grid.Grid):
                     end_col = target_col
 
                 # save previous value of the cell for undo
-                history.append([target_row, target_col, {"value": self.GetCellValue(target_row, target_col)}])
+                old_value = self.GetCellValue(target_row, target_col)
+                history.append([target_row, target_col, {"value": old_value}])
 
                 self.SetCellValue(target_row, target_col, value)
 
-        self.SelectBlock(start_row, start_col, end_row, end_col)  # select pasted range
+        self.SelectBlock(start_row, start_col, end_row, end_col)
         if out_of_range:
             wx.MessageBox("Pasted data is out of Grid range", "Warning")
 
@@ -410,13 +420,14 @@ class WireListGrid(wx.grid.Grid):
 
 if __name__ == '__main__':
     class MyFrame(wx.Frame):
-        def __init__(self, parent, ID, title, pos=wx.DefaultPosition, size=wx.Size(800, 400), style=wx.DEFAULT_FRAME_STYLE):
+        def __init__(self, parent, ID, title, pos=wx.DefaultPosition,
+                     size=wx.Size(800, 400), style=wx.DEFAULT_FRAME_STYLE):
             wx.Frame.__init__(self, parent, ID, title, pos, size, style)
-            agrid = WireListGrid(self)
-            wireFrame = WireListDataFrame()
+            # agrid = WireListGrid(self)
+            # wireFrame = WireListDataFrame()
             # wireFrame.set_dataframe_from_excel("Drahtliste_3ED00334R26-000.xlsx")
-            # agrid.set_from_dataframe( wireFrame.get_sorted_dataframe(), sub_headers = wireFrame.sub_headers )
-
+            # agrid.from_df( wireFrame.get_sorted_dataframe(),
+            #                sub_headers = wireFrame.sub_headers )
 
     class MyApp(wx.App):
         def OnInit(self):

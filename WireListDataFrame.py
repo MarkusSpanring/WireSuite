@@ -8,23 +8,20 @@ def main():
     df.set_dataframe_from_excel(inputfile)
     tmp = df.get_dataframe(True)
     print(tmp)
-    df.reorder_endpoints([("X8","K3")])
+    df.reorder_endpoints([("X8", "K3")])
     tmp = df.get_dataframe(True)
     print(tmp)
 
-
-    # df.export_to_excel("new_out",subheaders=False)
-
-    # writeWireList(df, "test")
+    # df.to_exc l("new_out",subheaders=False)
 
 class WireListDataFrame():
 
     def __init__(self):
         self.df = pd.DataFrame([])
-        self.sub_headers = []
-        self.connections = [("","")]
+        self.sub_hdrs = []
+        self.connections = [("", "")]
 
-    def set_dataframe(self,df):
+    def set_dataframe(self, df):
         if df.empty:
             return
 
@@ -33,26 +30,28 @@ class WireListDataFrame():
 
     def set_dataframe_from_excel(self, filename):
         raw_df = pd.read_excel(filename, sheet_name="Drahtliste")
-        self.set_dataframe( raw_df.dropna(axis=1,how="all") )
+        self.set_dataframe(raw_df.dropna(axis=1, how="all"))
 
-    def add_meta(self,df):
-        df =df.apply(define_parent_connectors, axis=1)
+    def add_meta(self, df):
+        df = df.apply(define_parent_connectors, axis=1)
         try:
-            self.connections = df.groupby(["start_parent","end_parent"]).count().index.to_list()
-        except KeyError as e:
+            groups = ["start_parent", "end_parent"]
+            self.connections = df.groupby(groups).count().index.to_list()
+        except KeyError:
             pass
 
-        df.fillna(value="", inplace = True)
+        df.fillna(value="", inplace=True)
         return df.apply(add_marker, axis=1)
 
-    def veto(self,df):
-        veto = ["marker","start_parent","end_parent","start_child","end_child"]
-        cols = [c for c in df.columns if not c in veto]
+    def veto(self, df):
+        veto = ["marker", "start_parent", "end_parent",
+                "start_child", "end_child"]
+        cols = [c for c in df.columns if c not in veto]
 
         return df[cols]
 
-    def get_dataframe(self, sort_rows = False, subheaders = False):
-        self.sub_headers = []
+    def get_dataframe(self, sort_rows=False, subheaders=False):
+        self.sub_hdrs = []
 
         if sort_rows and subheaders:
             export_df = self._get_grouped_dataframe()
@@ -61,26 +60,27 @@ class WireListDataFrame():
         else:
             export_df = self.df
 
-        return self.veto( export_df )
+        return self.veto(export_df)
 
-    def find_connections(self,start,end):
+    def find_connections(self, start, end):
         entries = []
-        for idx,row in self.df.iterrows():
+        for idx, row in self.df.iterrows():
             if row["start_parent"] == start and row["end_parent"] == end:
                 entries.append(idx)
         return entries
 
     def reorder_endpoints(self, new_connections=[]):
-        for start,end in new_connections:
+        for start, end in new_connections:
             for i, row in self.df.iterrows():
                 if row["end_parent"] == start and row["start_parent"] == end:
                     self.df.loc[i] = switch_endpoints(row)
-        self.df =self.add_meta(self.df)
+        self.df = self.add_meta(self.df)
 
     def _get_sorted_dataframe(self):
-        self.sub_headers = []
-        sorted_df = sort_by_connector( self.df )
-        self.connections = sorted_df.groupby(["start_parent","end_parent"]).count().index.to_list()
+        self.sub_hdrs = []
+        sorted_df = sort_by_connector(self.df)
+        groups = ["start_parent", "end_parent"]
+        self.connections = sorted_df.groupby(groups).count().index.to_list()
         return sorted_df
 
     def _get_grouped_dataframe(self, sort_rows=True):
@@ -90,44 +90,48 @@ class WireListDataFrame():
         else:
             grouped_df = self.df
 
-        header = ["Konfektion_A","von","<","nr.",">","zu","Konfektion_B","Querschnitt","Länge(mm)","Draht-Type"]
-        columns = {i:col for i, col in enumerate(header) }
+        header = ["Konfektion_A", "von", "<", "nr.", ">", "zu",
+                  "Konfektion_B", "Querschnitt", "Länge(mm)", "Draht-Type"]
+        columns = {i: col for i, col in enumerate(header)}
         grouped_df = grouped_df.rename(columns=columns)
 
-        for i,row in grouped_df.iterrows():
-            sub_header = row.loc["start_parent"] + " nach " + row.loc["end_parent"]
-            if not self.sub_headers:
-                self.sub_headers.append( (i+len(self.sub_headers),sub_header) )
-            elif self.sub_headers[-1][1] != sub_header:
-                self.sub_headers.append( (i+len(self.sub_headers),sub_header) )
+        for i, row in grouped_df.iterrows():
+            sub_header = row.loc["start_parent"]
+            sub_header += " nach " + row.loc["end_parent"]
+            if not self.sub_hdrs:
+                self.sub_hdrs.append((i + len(self.sub_hdrs), sub_header))
+            elif self.sub_hdrs[-1][1] != sub_header:
+                self.sub_hdrs.append((i + len(self.sub_hdrs), sub_header))
 
-        for i, string in self.sub_headers:
-            grouped_df = insert_line(grouped_df,i,string)
+        for i, hdr in self.sub_hdrs:
+            grouped_df = insert_line(grouped_df, i, hdr)
         formated_df = grouped_df.fillna(value="")
 
         return formated_df[header]
 
-    def export_connections(self,outfolder):
-        filepath = get_filepath(outfolder, "connections.lst")
+    def export_connections(self, outfolder):
+        filepath = get_filepath(outfolder=outfolder,
+                                name="connections.lst")
 
-        columns = ["start_parent","start_child","end_parent","end_child"]
+        columns = ["start_parent", "start_child", "end_parent", "end_child"]
         connections_df = self.df[columns]
 
         connections_df.to_pickle(filepath)
 
-    def export_markers(self,outfolder=""):
-        with open("message_template.xml","r") as FSO:
+    def export_markers(self, outfolder=""):
+        with open("message_template.xml", "r") as FSO:
             message = string.Template(FSO.read())
 
-        for i,marker in enumerate( self.df["marker"] ):
+        for i, marker in enumerate(self.df["marker"]):
 
-            content = message.substitute(info = marker)
+            content = message.substitute(info=marker)
 
-            filepath = get_filepath(outfolder, "{0}.Message.xml".format(i+100))
-            with open(filepath,"w") as FSO:
+            filepath = get_filepath(outfolder=outfolder,
+                                    name="{0}.Message.xml".format(i + 100))
+            with open(filepath, "w") as FSO:
                 FSO.write(content)
 
-    def export_to_excel(self, filename, outfolder=""):
+    def to_excel(self, filename, outfolder=""):
 
         if self.df.empty:
             return
@@ -135,103 +139,88 @@ class WireListDataFrame():
         raw_df = self.get_dataframe()
         grouped_df = self.get_dataframe(sort_rows=True, subheaders=True)
 
-        filepath = get_filepath(outfolder,"Drahtliste_{0}.xlsx".format(filename))
+        filepath = get_filepath(outfolder=outfolder,
+                                name="Drahtliste_{0}.xlsx".format(filename))
 
         writer = pd.ExcelWriter(filepath,
                                 engine='xlsxwriter')
 
-        raw_df.to_excel(writer, sheet_name='Rohdaten',startrow=1,index=False)
-        grouped_df.to_excel(writer, sheet_name='Drahtliste',startrow=1,index=False)
-        workbook  = writer.book
+        raw_df.to_excel(writer, sheet_name='Rohdaten',
+                        startrow=1, index=False)
+
+        grouped_df.to_excel(writer, sheet_name='Drahtliste',
+                            startrow=1, index=False)
+
+        workbook = writer.book
         worksheet = writer.sheets['Drahtliste']
         cell_format = workbook.add_format()
         cell_format.set_left(1)
         cell_format.set_right(1)
 
-        for i,width in  enumerate( self.get_column_widths(grouped_df) ):
-            worksheet.set_column(i, i, width,cell_format)
+        for i, width in enumerate(self.get_column_widths(grouped_df)):
+            worksheet.set_column(i, i, width, cell_format)
 
-        top_format = workbook.add_format({'bold': 1,'border': 6, 'align': 'center'})
+        use_format = {'bold': 1, 'border': 6, 'align': 'center'}
+        top_format = workbook.add_format(use_format)
         top_format.set_font_size(20)
-        merge_format = workbook.add_format({'bold': 1,'border': 6, 'align': 'center'})
+        merge_format = workbook.add_format(use_format)
 
         worksheet.merge_range('A1:J1', filename, top_format)
-        for i, sub_header in self.sub_headers:
-            worksheet.merge_range(i+2,0,i+2,len(grouped_df.columns)-1, sub_header, merge_format)
+        for i, sub_header in self.sub_hdrs:
+            worksheet.merge_range(i + 2, 0, i + 2, len(grouped_df.columns) - 1,
+                                  sub_header, merge_format)
 
         writer.save()
 
     def get_column_widths(self, df):
         header = df.columns
 
-        column_widths = []
-        for col,name in enumerate(header):
-            col_width = len( str(name) )
+        for col, name in enumerate(header):
+            col_width = len(str(name))
             individuals = df[name].value_counts().to_dict().keys()
             for i in individuals:
                 if len(str(i)) > col_width:
                     col_width = len(str(i))
             yield col_width + 1
 
-def get_filepath(outfolder, filename):
-    filepath = filename
+
+def get_filepath(outfolder, name):
+    filepath = name
     if outfolder:
-        filepath = "/".join([outfolder,filename])
+        filepath = "/".join([outfolder, name])
 
     return filepath
 
-def writeWireList(df, filename):
-
-    formated = WireListDataFrame(df)
-    formated_df = formated.get_export_dataframe()
-
-    writer = pd.ExcelWriter(filename+'.xlsx', engine='xlsxwriter')
-
-    formated_df.to_excel(writer, sheet_name='Drahtliste',startrow=1,index=False)
-    workbook  = writer.book
-    worksheet = writer.sheets['Drahtliste']
-    cell_format = workbook.add_format()
-    cell_format.set_left(1)
-    cell_format.set_right(1)
-
-    for i,width in  enumerate( formated.get_column_widths() ):
-        worksheet.set_column(i, i, width,cell_format)
-
-    top_format = workbook.add_format({'bold': 1,'border': 6, 'align': 'center'})
-    top_format.set_font_size(20)
-    merge_format = workbook.add_format({'bold': 1,'border': 6, 'align': 'center'})
-
-    worksheet.merge_range('A1:J1', filename, top_format)
-    for i, sub_header in formated.sub_headers:
-        worksheet.merge_range(i+2,0,i+2,len(formated.sub_headers), sub_header, merge_format)
-
-    writer.save()
 
 def sort_by_connector(df):
 
     modified_df = df
-    if not all( [i in df.columns for i in ["start_parent","end_parent"]] ):
-        modified_df = df.apply(define_parent_connectors, axis=1 )
+    if not all([i in df.columns for i in ["start_parent", "end_parent"]]):
+        modified_df = df.apply(define_parent_connectors, axis=1)
 
     # Values sorted by occurrence of start parent
     start_parents = modified_df["start_parent"].value_counts().to_dict()
 
     index = []
     for sp in start_parents.keys():
-        index += sort_by_freq( modified_df[modified_df["start_parent"] == sp], "end_parent").index.to_list()
+        sel_df = modified_df[modified_df["start_parent"] == sp]
+        index += sort_by_freq(sel_df, "end_parent").index.to_list()
 
     return modified_df.reindex(index).reset_index(drop=True)
 
+
 def sort_by_freq(df, key):
     sp_count = df[key].value_counts().to_dict()
-    df = df.assign(freq=df.apply(lambda x: sp_count[ x[key] ], axis=1) )
-    return df.sort_values(by=['freq',key],ascending=[False,True]).drop("freq",axis=1)
+    df = df.assign(freq=df.apply(lambda x: sp_count[x[key]], axis=1))
+    df = df.sort_values(by=['freq', key], ascending=[False, True])
+    return df.drop("freq", axis=1)
+
 
 def find_header(df):
     rows = df.values
 
-    for i,row in enumerate(rows):
-        if all([ label in row for label in ["von","nr.","zu"] ]):
+    for i, row in enumerate(rows):
+        if all([label in row for label in ["von", "nr.", "zu"]]):
             return list(rows[i])
     return None
 
@@ -242,41 +231,45 @@ def switch_endpoints(row):
 
     return row
 
-def insert_line(df,index,string):
-    line = pd.DataFrame(columns=df.columns,index=[index])
-    line[df.columns[0]] = string
 
-    return pd.concat([df.iloc[:index], line,df.iloc[index:]]).reset_index(drop=True)
+def insert_line(df, index, string):
+    line = pd.DataFrame(columns=df.columns, index=[index])
+    line[df.columns[0]] = string
+    new_df = pd.concat([df.iloc[:index], line, df.iloc[index:]])
+    return new_df.reset_index(drop=True)
+
 
 def find_pattern(row):
-
     for i, element in enumerate(row):
-        if element == "<" and row[i+2] == ">":
-            return (i-1,i+1,i+3)
+        if element == "<" and row[i + 2] == ">":
+            return (i - 1, i + 1, i + 3)
 
+    symbols = [".", "X", "K", "S"]
     for i, element in enumerate(row):
-        possible_start = any([ sym in str(element) for sym in [".","X","K","S"] ])
-        matching_center = False
-        matching_end = False
+        possible_start = any([sym in str(element) for sym in symbols])
+        match_center = False
+        match_end = False
         if possible_start:
 
             try:
-                matching_center = row[i+2] != ""
-                matching_end = any([ sym in str(row[i+4]) for sym in [".","X","K","S"] ])
-            except IndexError as e:
+                match_center = row[i + 2] != ""
+                match_end = any([sym in str(row[i + 4]) for sym in symbols])
+            except IndexError:
                 continue
 
-            found_one_dot = "." in str(element) + str(row[i+4])
+            found_one_dot = "." in str(element) + str(row[i + 4])
 
-            if all([possible_start,matching_center,matching_end,found_one_dot]):
-                return (i,i+2, i+4)
+            if all([possible_start, match_center, match_end, found_one_dot]):
+                return (i, i + 2, i + 4)
     return ()
+
 
 def add_marker(row):
     mpos = find_pattern(row)
     if mpos:
-        row["marker"] = row[mpos[0]]+"<"+row[mpos[1]]+">"+row[mpos[2]]
+        row["marker"] = row[mpos[0]] + "<" + row[mpos[1]] + ">" + row[mpos[2]]
     return row
+
 
 def define_parent_connectors(row):
     mpos = find_pattern(row)
@@ -289,7 +282,6 @@ def define_parent_connectors(row):
     else:
         row["start_parent"] = splstart[0]
     row["start_child"] = splstart[-1]
-
 
     if len(splstart) > 2:
         row["end_parent"] = ".".join(splend[:-1])

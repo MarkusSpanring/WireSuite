@@ -17,7 +17,7 @@ import PDFToDataFrame as pdfocr
 
 
 class PDFToDataFrameDialog(wx.Dialog):
-    def __init__(self, parent=None, outfolder ="", *args, **kwds):
+    def __init__(self, parent=None, outfolder="", *args, **kwds):
         # begin wxGlade: PDFToDataFrameGUI.__init__
         kwds["style"] = kwds.get("style", 0) | wx.DEFAULT_FRAME_STYLE
         super(PDFToDataFrameDialog, self).__init__(parent, *args, **kwds)
@@ -32,7 +32,8 @@ class PDFToDataFrameDialog(wx.Dialog):
         self.pdfPages = []
         self.clusters = []
         self.extractedData = pd.DataFrame([])
-        self.extractedImage = wx.Bitmap( wx.Image(1,1,clear=True) )
+        self.extractedImagePath = ""
+        self.extractedImage = wx.Bitmap(wx.Image(1, 1, clear=True))
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -62,7 +63,7 @@ class PDFToDataFrameDialog(wx.Dialog):
         self.btnSelectCluster = wx.Button(self, wx.ID_ANY, "Daten extrahieren")
         topSizer.Add(self.btnSelectCluster, 0, wx.ALL, 5)
 
-        img = wx.Image(1000,self.PhotoMaxSize)
+        img = wx.Image(1000, self.PhotoMaxSize)
         self.pdfPage = wx.StaticBitmap(self, wx.ID_ANY, wx.Bitmap(img))
         mainSizer.Add(self.pdfPage, 0, wx.EXPAND, 0)
 
@@ -70,11 +71,11 @@ class PDFToDataFrameDialog(wx.Dialog):
 
         self.Layout()
 
-        self.Bind(wx.EVT_BUTTON, self.onPageBackClicked, self.btnBack)
-        self.Bind(wx.EVT_BUTTON, self.onPageForwardClicked, self.btnForward)
-        self.Bind(wx.EVT_BUTTON, self.onSelectPageClicked, self.btnSelectPage)
-        self.Bind(wx.EVT_BUTTON, self.onImportPDFClicked, self.btnImportPDF)
-        self.Bind(wx.EVT_BUTTON, self.onSelectClusterClicked, self.btnSelectCluster)
+        self.btnBack.Bind(wx.EVT_BUTTON, self.onPageBackClicked)
+        self.btnForward.Bind(wx.EVT_BUTTON, self.onPageForwardClicked)
+        self.btnSelectPage.Bind(wx.EVT_BUTTON, self.onSelectPageClicked)
+        self.btnImportPDF.Bind(wx.EVT_BUTTON, self.onImportPDFClicked)
+        self.btnSelectCluster.Bind(wx.EVT_BUTTON, self.onSelectClusterClicked)
         # end wxGlade
 
         self.btnBack.Disable()
@@ -82,7 +83,7 @@ class PDFToDataFrameDialog(wx.Dialog):
         self.btnSelectPage.Disable()
         self.btnSelectCluster.Disable()
 
-    def onPageBackClicked(self, event):  # wxGlade: PDFToDataFrameGUI.<event_handler>
+    def onPageBackClicked(self, event):
         self.btnForward.Enable()
         self.currentPage -= 1
         if (self.currentPage - 1) < 0:
@@ -90,17 +91,17 @@ class PDFToDataFrameDialog(wx.Dialog):
 
         self.onView()
 
-    def onPageForwardClicked(self, event):  # wxGlade: PDFToDataFrameGUI.<event_handler>
-        self.btnBack.Enable()
+    def onPageForwardClicked(self, event):
         self.currentPage += 1
         if self.currentPage + 1 == len(self.pdfPages):
             self.btnForward.Disable()
         self.onView()
 
-    def onSelectPageClicked(self, event):  # wxGlade: PDFToDataFrameGUI.<event_handler>
+    def onSelectPageClicked(self, event):
         outfolder = os.path.dirname(self.pdfPages[self.currentPage])
-        img, contours = pdfocr.find_contours_in_image(self.pdfPages[self.currentPage], basefolder=self.outfolder)
-        self.clusters = pdfocr.BoxClusters(img, outfolder = outfolder)
+        img, contours = pdfocr.find_contours_in_image(self.pdfPages[self.currentPage],
+                                                      basefolder=self.outfolder)
+        self.clusters = pdfocr.BoxClusters(img, outfolder=outfolder)
         self.clusters.build_clusters(contours=contours)
 
         self.pdfPages = [self.clusters.mark_clusters_in_image()]
@@ -115,7 +116,8 @@ class PDFToDataFrameDialog(wx.Dialog):
         self.onView()
 
     def onImportPDFClicked(self, event):  # wxGlade: MyDialog.<event_handler>
-        dialog = wx.FileDialog(None, "Öffnen", "", "", "PDF Dateien (*.pdf)|*.pdf",
+        dialog = wx.FileDialog(None, "Öffnen", "", "",
+                               "PDF Dateien (*.pdf)|*.pdf",
                                      wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         if dialog.ShowModal() == wx.ID_OK:
             self.pdfpath = dialog.GetPath()
@@ -128,7 +130,8 @@ class PDFToDataFrameDialog(wx.Dialog):
         dialog.Destroy()
 
         if self.pdfpath:
-            self.pdfPages = pdfocr.save_images_from_pdf(self.pdfpath, basefolder=self.outfolder)
+            self.pdfPages = pdfocr.save_images_from_pdf(self.pdfpath,
+                                                        basefolder=self.outfolder)
             if len(self.pdfPages) > 1:
                 self.btnForward.Enable()
 
@@ -147,20 +150,24 @@ class PDFToDataFrameDialog(wx.Dialog):
         NewH = self.PhotoMaxSize
         NewW = self.PhotoMaxSize * W / H
 
-        img = img.Scale(NewW,NewH)
+        img = img.Scale(NewW, NewH)
         self.pdfPage.SetBitmap(wx.Bitmap(img))
         self.Refresh()
 
-    def onSelectClusterClicked(self, event):  # wxGlade: MyDialog.<event_handler>
+    def onSelectClusterClicked(self, event):
         clusterIdx = int(self.scClusterIdx.GetValue()) - 1
 
         image_path = self.clusters.get_cluster_image(clusterIdx)
-        img=  wx.Image(image_path, wx.BITMAP_TYPE_ANY)
-        newW = 1000*( img.GetWidth() / img.GetHeight() )
-        self.extractedImage = wx.Bitmap( img.Scale(newW,1000) )
+        img = wx.Image(image_path, wx.BITMAP_TYPE_ANY)
+        newW = 1000 * (img.GetWidth() / img.GetHeight())
+        self.extractedImage = wx.Bitmap(img.Scale(newW, 1000))
+        self.extractedImagePath = image_path
 
         self.extractedData = self.clusters.get_df_from_cluster(clusterIdx)
         self.Close()
+
+    def getImagePath(self):
+        return self.extractedImagePath
 
     def getImage(self):
         return self.extractedImage
@@ -171,16 +178,14 @@ class PDFToDataFrameDialog(wx.Dialog):
     def getPDFPath(self):
         return self.pdfpath
 
-# end of class PDFToDataFrameGUI
 
 class MyApp(wx.App):
     def OnInit(self):
-        self.frame = PDFToDataFrameGUI(None, wx.ID_ANY, "")
+        self.frame = PDFToDataFrameDialog(None, wx.ID_ANY, "")
         self.SetTopWindow(self.frame)
         self.frame.Show()
         return True
 
-# end of class MyApp
 
 if __name__ == "__main__":
     app = MyApp(0)
