@@ -37,19 +37,21 @@ class PDFToDataFrameDialog(wx.Dialog):
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
-        topSizer = wx.BoxSizer(wx.HORIZONTAL)
-        mainSizer.Add(topSizer, 1, wx.EXPAND, 0)
+        btnPanel = wx.Panel(self, wx.ID_ANY)
+        mainSizer.Add(btnPanel, 0, wx.EXPAND, 0)
 
-        self.btnImportPDF = wx.Button(self, wx.ID_ANY, "PDF importieren")
+        topSizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.btnImportPDF = wx.Button(btnPanel, wx.ID_ANY, "PDF importieren")
         topSizer.Add(self.btnImportPDF, 0, wx.ALL, 5)
 
-        self.btnBack = wx.Button(self, wx.ID_ANY, "<<")
+        self.btnBack = wx.Button(btnPanel, wx.ID_ANY, "<<")
         topSizer.Add(self.btnBack, 0, wx.ALL, 5)
 
-        self.btnForward = wx.Button(self, wx.ID_ANY, ">>")
+        self.btnForward = wx.Button(btnPanel, wx.ID_ANY, ">>")
         topSizer.Add(self.btnForward, 0, wx.ALL, 5)
 
-        self.btnSelectPage = wx.Button(self, wx.ID_ANY, u"Seite auswählen")
+        self.btnSelectPage = wx.Button(btnPanel, wx.ID_ANY, u"Seite auswählen")
         topSizer.Add(self.btnSelectPage, 0, wx.ALL, 5)
 
         spacerPanel = wx.Panel(self, wx.ID_ANY)
@@ -57,7 +59,7 @@ class PDFToDataFrameDialog(wx.Dialog):
         topSizer.Add(spacerPanel, 1, wx.ALL, 5)
 
         self.scClusterIdx = wx.SpinCtrl(self, wx.ID_ANY, "0", min=1, max=1)
-        self.scClusterIdx.SetMinSize((50, 30))
+        self.scClusterIdx.SetMinSize((50, 22))
         topSizer.Add(self.scClusterIdx, 0, wx.ALL, 5)
 
         self.btnSelectCluster = wx.Button(self, wx.ID_ANY, "Daten extrahieren")
@@ -67,6 +69,8 @@ class PDFToDataFrameDialog(wx.Dialog):
         self.pdfPage = wx.StaticBitmap(self, wx.ID_ANY, wx.Bitmap(img))
         mainSizer.Add(self.pdfPage, 0, wx.EXPAND, 0)
 
+        btnPanel.SetSizer(topSizer)
+        
         self.SetSizer(mainSizer)
 
         self.Layout()
