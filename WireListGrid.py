@@ -75,6 +75,7 @@ class WireListGrid(wx.grid.Grid):
         else:
             wx.MessageBox("Can't open the clipboard", "Warning")
         self.SelectAll()
+        self.ForceRefresh()
         self.paste(None)
         for row, sh in sub_headers:
             self.SetCellFont(row, 0, wx.Font(14, wx.SWISS, wx.NORMAL, wx.BOLD))
