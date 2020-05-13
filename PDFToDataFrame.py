@@ -9,14 +9,14 @@ import platform
 import pytesseract
 
 if platform.system() == "Windows":
-    pytesseract.pytesseract.tesseract_cmd=r'C:\Tesseract-OCR\tesseract.exe'
+    pytesseract.pytesseract.tesseract_cmd=r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 
 
 def save_images_from_pdf(filepath, basefolder = ""):
-    filename = filepath.split("/")[-1].split(".")[0]
+    filename = os.path.split(filepath)[-1].split(".")[0]
     if basefolder:
-        folder = "/".join([basefolder,filename])
+        folder = os.path.join(basefolder,filename)
     else:
         folder = filename
 
@@ -27,9 +27,9 @@ def save_images_from_pdf(filepath, basefolder = ""):
     png_images = []
     images = pdf2image.convert_from_path(filepath,size=(5000,None))
     for pageIdx, image in enumerate(images):
-        imagename ="{folder}/{filename}_page{pagenumber}.png".format(folder=folder,
-                                                                     filename=filename,
-                                                                     pagenumber=pageIdx)
+        imagename = "{filename}_page{pagenumber}.png".format(filename=filename,
+                                                             pagenumber=pageIdx)
+        imagename = os.path.join(folder, imagename)
         image.save(imagename,"PNG")
         png_images.append(imagename)
     return png_images
@@ -38,7 +38,7 @@ def save_images_from_pdf(filepath, basefolder = ""):
 def find_contours_in_image(filename, debug = False, basefolder = ""):
     if debug:
         if basefolder:
-            folder = "/".join([basefolder,"debug"])
+            folder = os.path.join(basefolder,"debug")
         else:
             folder = "debug"
 
@@ -186,11 +186,11 @@ class BoxCluster():
         self.image = copy.deepcopy(image)
 
     def crop_image_to_box(self, box, outfolder):
-        x = slice( box["x"], box["x"] + box["w"] )
-        y = slice( box["y"], box["y"] + box["h"] )
+        x = slice(box["x"], box["x"] + box["w"])
+        y = slice(box["y"], box["y"] + box["h"])
 
-        filename = "{outfolder}/box_at_x{x}_y{y}.png".format(x=box["x"],y=box["y"],
-                                                             outfolder=outfolder)
+        filename = "box_at_x{x}_y{y}.png".format(x=box["x"], y=box["y"])
+        filename = os.path.join(outfolder, filename)
 
         new_img = self.image[y, x]
         cv2.imwrite(filename, new_img)
@@ -389,7 +389,7 @@ class BoxClusters():
                                 cv2.FONT_HERSHEY_SIMPLEX, 10,
                                 (255,0,0),20)
 
-        outfile = self.outfolder + "/boxes.png"
+        outfile = os.path.join(self.outfolder, "boxes.png")
         cv2.imwrite(outfile ,marked_img)
         return outfile
 
