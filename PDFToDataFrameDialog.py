@@ -54,15 +54,15 @@ class PDFToDataFrameDialog(wx.Dialog):
         self.btnSelectPage = wx.Button(btnPanel, wx.ID_ANY, u"Seite auswählen")
         topSizer.Add(self.btnSelectPage, 0, wx.ALL, 5)
 
-        spacerPanel = wx.Panel(self, wx.ID_ANY)
+        spacerPanel = wx.Panel(btnPanel, wx.ID_ANY)
         spacerPanel.SetMinSize((630, 30))
         topSizer.Add(spacerPanel, 1, wx.ALL, 5)
 
-        self.scClusterIdx = wx.SpinCtrl(self, wx.ID_ANY, "0", min=1, max=1)
+        self.scClusterIdx = wx.SpinCtrl(btnPanel, wx.ID_ANY, "0", min=1, max=1)
         self.scClusterIdx.SetMinSize((50, 22))
         topSizer.Add(self.scClusterIdx, 0, wx.ALL, 5)
 
-        self.btnSelectCluster = wx.Button(self, wx.ID_ANY, "Daten extrahieren")
+        self.btnSelectCluster = wx.Button(btnPanel, wx.ID_ANY, "Daten extrahieren")
         topSizer.Add(self.btnSelectCluster, 0, wx.ALL, 5)
 
         img = wx.Image(1000, self.PhotoMaxSize)
