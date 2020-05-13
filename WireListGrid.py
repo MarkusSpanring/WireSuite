@@ -347,8 +347,8 @@ class WireListGrid(wx.grid.Grid):
 
         clipboard = wx.TextDataObject()
         wx.TheClipboard.GetData(clipboard)
-        wx.TheClipboard.Close()
         data = clipboard.GetText()
+        wx.TheClipboard.Close()
 
         if data[-1] == "\n":
             data = data[:-1]
