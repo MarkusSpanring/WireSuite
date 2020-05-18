@@ -43,6 +43,11 @@ class MainWireListPanel(wx.Panel):
         self.spacerPanelLeft = wx.Panel(self.panelBkg, wx.ID_ANY)
         controlSizer.Add(self.spacerPanelLeft, 1, wx.EXPAND, 0)
 
+        self.browseExport = wx.DirPickerCtrl(self.panelBkg,
+                                             wx.ID_ANY, size=(200, -1))
+        controlSizer.Add(self.browseExport, 1,
+                         wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
         self.btnExport = wx.Button(self.panelBkg, wx.ID_ANY, "Exportieren")
         controlSizer.Add(self.btnExport, 0,
                          wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
@@ -137,7 +142,7 @@ class MainWireListPanel(wx.Panel):
         self.bmpSideView.SetBitmap(wx.Bitmap(wx.Image(1, 1)))
 
     def onImportPDFClicked(self, event):
-        outfolder = "/".join([self.directory["tmp"], "WireList"])
+        outfolder = os.path.join(self.directory["tmp"], "WireList")
         self.pdfimporter = PDFToDataFrameDialog(self.panelBkg,
                                                 outfolder=outfolder)
         self.pdfimporter.Bind(wx.EVT_CLOSE, self.onPDFImporterClose)
@@ -191,18 +196,13 @@ class MainWireListPanel(wx.Panel):
         self.lcConBox.SetItem(row, 1, start)
 
     def onExportClicked(self, event):
-        dlg = wx.FileDialog(self, "Drahtliste speichern unter:", ".",
-                            self.getFilename(self.openedFile), "", wx.FD_SAVE)
-        if dlg.ShowModal() == wx.ID_OK:
-
-            exportPath = dlg.GetPath()
-            if os.path.exists(exportPath):
-                shutil.rmtree(exportPath)
+        exportPath = self.browseExport.GetPath()
+        if os.path.exists(exportPath):
 
             raw_path = os.path.join(exportPath, "raw")
             msg_path = os.path.join(exportPath, "Messages")
-            os.makedirs(raw_path)
-            os.makedirs(msg_path)
+            os.makedirs(raw_path, exist_ok=True)
+            os.makedirs(msg_path, exist_ok=True)
 
             if self.openedFile:
                 shutil.copy(self.openedFile, raw_path)
@@ -213,7 +213,13 @@ class MainWireListPanel(wx.Panel):
             self.wlDF.to_excel(filename=self.getFilename(self.openedFile),
                                outfolder=exportPath)
 
-        dlg.Destroy()
+            wx.MessageBox("Drahtliste exportiert!", "Info",
+                          wx.OK | wx.ICON_INFORNMATION)
+        else:
+            msg = '"{0}" existiert nicht!'.format(exportPath)
+            msg += ' Kann nicht exportieren!'
+            wx.MessageBox(msg, "Info",
+                          wx.OK | wx.ICON_INFORNMATION)
 
     def onZoom(self, event):
         if not self.sideViewImgPath:
