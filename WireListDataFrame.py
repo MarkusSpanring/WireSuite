@@ -1,5 +1,6 @@
 import string
 import pandas as pd
+import os
 
 def main():
     inputfile = "Drahtliste_3ED00334R26-000.xlsx"
@@ -187,7 +188,7 @@ class WireListDataFrame():
 def get_filepath(outfolder, name):
     filepath = name
     if outfolder:
-        filepath = "/".join([outfolder, name])
+        filepath = os.path.join(outfolder, name)
 
     return filepath
 

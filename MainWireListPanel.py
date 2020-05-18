@@ -198,14 +198,17 @@ class MainWireListPanel(wx.Panel):
             exportPath = dlg.GetPath()
             if os.path.exists(exportPath):
                 shutil.rmtree(exportPath)
-            os.makedirs(exportPath + "/raw")
-            os.makedirs(exportPath + "/Messages")
+
+            raw_path = os.path.join(exportPath, "raw")
+            msg_path = os.path.join(exportPath, "Messages")
+            os.makedirs(raw_path)
+            os.makedirs(msg_path)
 
             if self.openedFile:
-                shutil.copy(self.openedFile, exportPath + "/raw")
+                shutil.copy(self.openedFile, raw_path)
 
             self.wlDF.set_dataframe(self.wlGrid.get_dataframe())
-            self.wlDF.export_markers(outfolder=exportPath + "/Messages")
+            self.wlDF.export_markers(outfolder=msg_path)
             self.wlDF.export_connections(outfolder=exportPath)
             self.wlDF.to_excel(filename=self.getFilename(self.openedFile),
                                outfolder=exportPath)
