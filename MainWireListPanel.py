@@ -214,12 +214,12 @@ class MainWireListPanel(wx.Panel):
                                outfolder=exportPath)
 
             wx.MessageBox("Drahtliste exportiert!", "Info",
-                          wx.OK | wx.ICON_INFORNMATION)
+                          wx.OK | wx.ICON_INFORMATION)
         else:
             msg = '"{0}" existiert nicht!'.format(exportPath)
             msg += ' Kann nicht exportieren!'
             wx.MessageBox(msg, "Info",
-                          wx.OK | wx.ICON_INFORNMATION)
+                          wx.OK | wx.ICON_INFORMATION)
 
     def onZoom(self, event):
         if not self.sideViewImgPath:
