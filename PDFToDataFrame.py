@@ -10,6 +10,7 @@ import pytesseract
 
 if platform.system() == "Windows":
     pytesseract.pytesseract.tesseract_cmd=r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+    os.environ['PATH'] += ';C:\\Program Files (x86)\\poppler-0.68.0\\bin'
 
 
 
