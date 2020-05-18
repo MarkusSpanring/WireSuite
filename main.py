@@ -13,9 +13,9 @@ class MyPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
 
         self.directory = {}
-        self.directory["tmp"] = "data/tmp"
-        self.directory["adapter"] = "data/adapter"
-        self.directory["modules"] = "data/modules"
+        self.directory["tmp"] = os.path.join("data", "tmp")
+        self.directory["adapter"] = os.path.join("data", "adapter")
+        self.directory["modules"] = os.path.join("data", "modules")
         for d in self.directory.values():
             if not os.path.exists(d):
                 os.makedirs(d)
@@ -65,7 +65,7 @@ class MyPanel(wx.Panel):
             self._active_panel[panel] = False
 
         if panel_name not in self._active_panel:
-            folder = "/".join([self.directory["tmp"], panel_name])
+            folder = os.path.join(self.directory["tmp"], panel_name)
             if os.path.exists(folder):
                 shutil.rmtree(folder)
             os.makedirs(folder)
@@ -129,6 +129,11 @@ class MyFrame(wx.Frame):
 
 
 if __name__ == "__main__":
+
+    # Otherwise I can not execute it
+    # by doubleclicking on windows...
+    os.chdir(os.path.dirname(__file__))
+
     app = wx.App(False)
     frame = MyFrame()
     app.MainLoop()
