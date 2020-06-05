@@ -49,7 +49,8 @@ class MyPanel(wx.Panel):
 
         self.mainSizer.Add(controlSizer, 0, wx.CENTER, 0)
         self.mainSizer.Add(wx.StaticLine(self, wx.ID_ANY), 0, wx.EXPAND, 0)
-        self.mainSizer.Add(self.widgetSizer, 0, wx.CENTER | wx.ALL, 10)
+        self.mainSizer.Add(self.widgetSizer, 1,
+                           wx.EXPAND | wx.CENTER | wx.ALL, 10)
 
         self.SetSizer(self.mainSizer)
 
@@ -110,7 +111,7 @@ class MyPanel(wx.Panel):
         self.active_panel = ""
 
     def drawPanel(self, panel):
-        self.widgetSizer.Add(panel, 0, wx.ALL, 5)
+        self.widgetSizer.Add(panel, 0, wx.EXPAND | wx.ALL, 5)
         self.frame.fSizer.Layout()
         self.frame.Fit()
 
@@ -131,8 +132,9 @@ class MyFrame(wx.Frame):
 if __name__ == "__main__":
 
     # Otherwise I can not execute it
-    # by doubleclicking on windows...
-    os.chdir(os.path.dirname(__file__))
+    # by doubleclicking on windows... Yes, its nasty
+    # TODO: Check if clean python install resolves it
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
     app = wx.App(False)
     frame = MyFrame()

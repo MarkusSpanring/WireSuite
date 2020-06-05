@@ -26,7 +26,7 @@ class MainWireListPanel(wx.Panel):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
         self.panelBkg = wx.Panel(self, wx.ID_ANY)
-        mainSizer.Add(self.panelBkg, 0, wx.EXPAND, 0)
+        mainSizer.Add(self.panelBkg, 1, wx.EXPAND, 0)
 
         controlSizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -72,7 +72,7 @@ class MainWireListPanel(wx.Panel):
         self.sideViewImgPath = ""
         self.bmpSideView = wx.StaticBitmap(self.topPanel, wx.ID_ANY,
                                            wx.Bitmap(wx.Image(1, 1)))
-        pdfviewSizer.Add(self.bmpSideView, 0, 0, 0)
+        pdfviewSizer.Add(self.bmpSideView, 1, wx.EXPAND, 0)
 
         self.bottomPanel = wx.Panel(self.splitWindow, wx.ID_ANY)
 
@@ -80,31 +80,53 @@ class MainWireListPanel(wx.Panel):
         # mainSizer.Add(gridSizer, 1, wx.EXPAND, 0)
 
         self.switchPanel = wx.Panel(self.bottomPanel, wx.ID_ANY,
-                                    style=wx.BORDER_RAISED)
-        self.switchPanel.SetMinSize((150, 715))
+                                    style=wx.BORDER_RAISED,
+                                    size=(150, 715))
         gridSizer.Add(self.switchPanel, 0, wx.EXPAND | wx.ALL, 5)
 
         switchSizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.btnSort = wx.Button(self.switchPanel, wx.ID_ANY, "Sortieren")
-        switchSizer.Add(self.btnSort, 0, wx.ALIGN_CENTER | wx.ALL, 5)
+        naviSizer = wx.BoxSizer(wx.HORIZONTAL)
+        switchSizer.Add(naviSizer, 0, 0, 0)
 
-        self.btnSwitch = wx.Button(self.switchPanel, wx.ID_ANY, "Tauschen")
-        switchSizer.Add(self.btnSwitch, 0,
-                        wx.ALIGN_CENTER | wx.BOTTOM | wx.LEFT | wx.RIGHT, 5)
+        udSizer = wx.BoxSizer(wx.VERTICAL)
+        naviSizer.Add(udSizer, 0, 0, 0)
+
+        self.btnUp = wx.Button(self.switchPanel, wx.ID_ANY, u"▲")
+        self.btnUp.SetMinSize((25, 21))
+        udSizer.Add(self.btnUp, 0, wx.BOTTOM | wx.LEFT | wx.TOP, 5)
+
+        self.btnDown = wx.Button(self.switchPanel, wx.ID_ANY, u"▼")
+        self.btnDown.SetMinSize((25, 21))
+        udSizer.Add(self.btnDown, 0, wx.BOTTOM | wx.LEFT, 5)
+
+        sortSizer = wx.BoxSizer(wx.VERTICAL)
+        naviSizer.Add(sortSizer, 0, 0, 0)
+
+        self.btnSort = wx.Button(self.switchPanel, wx.ID_ANY, "Sortieren")
+        sortSizer.Add(self.btnSort, 0,
+                      wx.ALIGN_CENTER | wx.BOTTOM | wx.RIGHT | wx.TOP, 5)
+
+        self.radio_box_1 = wx.RadioBox(self.switchPanel, wx.ID_ANY, "",
+                                       choices=["von", "zu"],
+                                       majorDimension=2,
+                                       style=wx.RA_SPECIFY_COLS)
+        self.radio_box_1.SetSelection(0)
+        sortSizer.Add(self.radio_box_1, 0, wx.RIGHT, 5)
 
         lcStyle = wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES
         self.lcConBox = wx.ListCtrl(self.switchPanel, wx.ID_ANY,
-                                    style=lcStyle)
-        self.lcConBox.SetMinSize((150, 658))
+                                    style=lcStyle,
+                                    size=(150, 658))
+
         self.lcConBox.AppendColumn("von", format=wx.LIST_FORMAT_LEFT,
                                    width=72)
         self.lcConBox.AppendColumn("zu", format=wx.LIST_FORMAT_LEFT,
                                    width=72)
-        switchSizer.Add(self.lcConBox, 0, wx.EXPAND, 0)
+        switchSizer.Add(self.lcConBox, 0, 0, 0)
 
         self.wlGrid = WireListGrid(self.bottomPanel)
-        gridSizer.Add(self.wlGrid, 1, wx.ALL | wx.EXPAND, 5)
+        gridSizer.Add(self.wlGrid, 0, wx.ALL | wx.EXPAND, 5)
 
         self.switchPanel.SetSizer(switchSizer)
 
@@ -125,7 +147,6 @@ class MainWireListPanel(wx.Panel):
         self.btnExport.Bind(wx.EVT_BUTTON, self.onExportClicked)
         self.sldZoom.Bind(wx.EVT_COMMAND_SCROLL_THUMBRELEASE, self.onZoom)
         self.btnSort.Bind(wx.EVT_BUTTON, self.onSortClicked)
-        self.btnSwitch.Bind(wx.EVT_BUTTON, self.onSwitchClicked)
         self.lcConBox.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onSwitchClicked)
         self.lcConBox.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onConSelected)
         self.lcConBox.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onConDeselected)
