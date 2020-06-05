@@ -62,6 +62,8 @@ class WireListDataFrame():
 
         if sort_rows and subheaders:
             export_df = self._get_grouped_dataframe()
+        elif not sort_rows and subheaders:
+            export_df = self._get_grouped_dataframe(False)
         elif sort_rows and not subheaders:
             export_df = self._get_sorted_dataframe()
         else:
@@ -148,7 +150,7 @@ class WireListDataFrame():
             return
 
         raw_df = self.get_dataframe()
-        grouped_df = self.get_dataframe(sort_rows=True, subheaders=True)
+        grouped_df = self.get_dataframe(sort_rows=False, subheaders=True)
 
         filepath = get_filepath(outfolder=outfolder,
                                 name="Drahtliste_{0}.xlsx".format(filename))
