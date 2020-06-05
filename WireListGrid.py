@@ -19,7 +19,7 @@ class WireListGrid(wx.grid.Grid):
         self.selected_rows = []
         self.selected_cols = []
         self.history = []
-        self.CreateGrid(100, 15)
+        self.CreateGrid(300, 15)
         self.set_header()
         self.AutoSizeColumns()
         self.AutoSizeRows()

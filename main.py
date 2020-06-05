@@ -49,7 +49,7 @@ class MyPanel(wx.Panel):
 
         self.mainSizer.Add(controlSizer, 0, wx.CENTER, 0)
         self.mainSizer.Add(wx.StaticLine(self, wx.ID_ANY), 0, wx.EXPAND, 0)
-        self.mainSizer.Add(self.widgetSizer, 1,
+        self.mainSizer.Add(self.widgetSizer, 0,
                            wx.EXPAND | wx.CENTER | wx.ALL, 10)
 
         self.SetSizer(self.mainSizer)

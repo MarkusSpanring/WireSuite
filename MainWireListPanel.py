@@ -26,7 +26,7 @@ class MainWireListPanel(wx.Panel):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
         self.panelBkg = wx.Panel(self, wx.ID_ANY)
-        mainSizer.Add(self.panelBkg, 1, wx.EXPAND, 0)
+        mainSizer.Add(self.panelBkg, 0, wx.EXPAND, 0)
 
         controlSizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -58,11 +58,11 @@ class MainWireListPanel(wx.Panel):
 
         self.splitWindow = wx.SplitterWindow(self, wx.ID_ANY)
         self.splitWindow.SetMinimumPaneSize(20)
-        mainSizer.Add(self.splitWindow, 1, wx.EXPAND, 0)
+        mainSizer.Add(self.splitWindow, 0, wx.EXPAND, 0)
 
         self.splitWindow = wx.SplitterWindow(self, wx.ID_ANY)
         self.splitWindow.SetMinimumPaneSize(20)
-        mainSizer.Add(self.splitWindow, 1, wx.EXPAND, 0)
+        mainSizer.Add(self.splitWindow, 0, wx.EXPAND, 0)
 
         self.topPanel = scrolled.ScrolledPanel(self.splitWindow, wx.ID_ANY)
         self.topPanel.SetMinSize((-1, 20))
@@ -72,7 +72,7 @@ class MainWireListPanel(wx.Panel):
         self.sideViewImgPath = ""
         self.bmpSideView = wx.StaticBitmap(self.topPanel, wx.ID_ANY,
                                            wx.Bitmap(wx.Image(1, 1)))
-        pdfviewSizer.Add(self.bmpSideView, 1, wx.EXPAND, 0)
+        pdfviewSizer.Add(self.bmpSideView, 0, wx.EXPAND, 0)
 
         self.bottomPanel = wx.Panel(self.splitWindow, wx.ID_ANY)
 
@@ -107,12 +107,12 @@ class MainWireListPanel(wx.Panel):
         sortSizer.Add(self.btnSort, 0,
                       wx.ALIGN_CENTER | wx.BOTTOM | wx.RIGHT | wx.TOP, 5)
 
-        self.radio_box_1 = wx.RadioBox(self.switchPanel, wx.ID_ANY, "",
-                                       choices=["von", "zu"],
-                                       majorDimension=2,
-                                       style=wx.RA_SPECIFY_COLS)
-        self.radio_box_1.SetSelection(0)
-        sortSizer.Add(self.radio_box_1, 0, wx.RIGHT, 5)
+        self.sortStyle = wx.RadioBox(self.switchPanel, wx.ID_ANY, "",
+                                     choices=["von", "zu"],
+                                     majorDimension=2,
+                                     style=wx.RA_SPECIFY_COLS)
+        self.sortStyle.SetSelection(0)
+        sortSizer.Add(self.sortStyle, 0, wx.RIGHT, 5)
 
         lcStyle = wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES
         self.lcConBox = wx.ListCtrl(self.switchPanel, wx.ID_ANY,
@@ -147,6 +147,8 @@ class MainWireListPanel(wx.Panel):
         self.btnExport.Bind(wx.EVT_BUTTON, self.onExportClicked)
         self.sldZoom.Bind(wx.EVT_COMMAND_SCROLL_THUMBRELEASE, self.onZoom)
         self.btnSort.Bind(wx.EVT_BUTTON, self.onSortClicked)
+        self.btnUp.Bind(wx.EVT_BUTTON, self.moveConUp)
+        self.btnDown.Bind(wx.EVT_BUTTON, self.moveConDown)
         self.lcConBox.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onSwitchClicked)
         self.lcConBox.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onConSelected)
         self.lcConBox.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.onConDeselected)
@@ -181,6 +183,35 @@ class MainWireListPanel(wx.Panel):
 
         event.Skip()
 
+    def moveConUp(self, event):
+        itemIdx = self.lcConBox.GetFirstSelected()
+        if itemIdx == -1:
+            return
+
+        start = self.lcConBox.GetItem(itemIdx=itemIdx, col=0).GetText()
+        end = self.lcConBox.GetItem(itemIdx=itemIdx, col=1).GetText()
+
+        index = self.lcConBox.InsertItem(itemIdx - 1, start)
+        self.lcConBox.SetItem(index, 1, end)
+
+        self.lcConBox.DeleteItem(itemIdx + 1)
+        self.lcConBox.Select(itemIdx - 1)
+
+    def moveConDown(self, event):
+
+        itemIdx = self.lcConBox.GetFirstSelected()
+        if itemIdx == -1:
+            return
+
+        start = self.lcConBox.GetItem(itemIdx=itemIdx, col=0).GetText()
+        end = self.lcConBox.GetItem(itemIdx=itemIdx, col=1).GetText()
+
+        index = self.lcConBox.InsertItem(itemIdx + 2, start)
+        self.lcConBox.SetItem(index, 1, end)
+
+        self.lcConBox.DeleteItem(itemIdx)
+        self.lcConBox.Select(itemIdx + 1)
+
     def onSortClicked(self, event):
         self.onConDeselected(event)
         self.wlGrid.ClearSelection()
@@ -195,26 +226,26 @@ class MainWireListPanel(wx.Panel):
 
         else:
             connections = []
-            for row in range(self.lcConBox.GetItemCount()):
-                start = self.lcConBox.GetItem(itemIdx=row, col=0).GetText()
-                end = self.lcConBox.GetItem(itemIdx=row, col=1).GetText()
+            for itemIdx in range(self.lcConBox.GetItemCount()):
+                start = self.lcConBox.GetItem(itemIdx=itemIdx, col=0).GetText()
+                end = self.lcConBox.GetItem(itemIdx=itemIdx, col=1).GetText()
                 connections.append((start, end))
 
             self.wlDF.reorder_endpoints(connections)
-            self.wlGrid.from_df(self.wlDF.get_dataframe(sort_rows=True))
+            self.wlGrid.from_df(self.wlDF.get_dataframe())
             self.fillConnectionBox()
         self.wlGrid.ClearSelection()
 
     def onSwitchClicked(self, event):
-        row = self.lcConBox.GetFirstSelected()
-        if row == -1:
+        itemIdx = self.lcConBox.GetFirstSelected()
+        if itemIdx == -1:
             return
 
-        start = self.lcConBox.GetItem(itemIdx=row, col=0).GetText()
-        end = self.lcConBox.GetItem(itemIdx=row, col=1).GetText()
+        start = self.lcConBox.GetItem(itemIdx=itemIdx, col=0).GetText()
+        end = self.lcConBox.GetItem(itemIdx=itemIdx, col=1).GetText()
 
-        self.lcConBox.SetItem(row, 0, end)
-        self.lcConBox.SetItem(row, 1, start)
+        self.lcConBox.SetItem(itemIdx, 0, end)
+        self.lcConBox.SetItem(itemIdx, 1, start)
 
     def onExportClicked(self, event):
         exportPath = self.browseExport.GetPath()
@@ -264,6 +295,14 @@ class MainWireListPanel(wx.Panel):
         itemIdx = self.lcConBox.GetFirstSelected()
         start = self.lcConBox.GetItem(itemIdx=itemIdx, col=0).GetText()
         end = self.lcConBox.GetItem(itemIdx=itemIdx, col=1).GetText()
+
+        self.btnUp.Enable()
+        self.btnDown.Enable()
+
+        if itemIdx - 1 < 0:
+            self.btnUp.Disable()
+        if itemIdx + 1 == self.lcConBox.GetItemCount():
+            self.btnDown.Disable()
 
         # Thats a bit of an overhead. Maybe use wlDF as wlGrid datatype
         self.wlDF.set_dataframe(self.wlGrid.get_dataframe())

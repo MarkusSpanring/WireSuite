@@ -79,10 +79,24 @@ class WireListDataFrame():
         return entries
 
     def reorder_endpoints(self, new_connections=[]):
+
         for start, end in new_connections:
-            for i, row in self.df.iterrows():
-                if row["end_parent"] == start and row["start_parent"] == end:
-                    self.df.loc[i] = switch_endpoints(row)
+            match = self.df[(self.df["end_parent"] == start)
+                            & (self.df["start_parent"] == end)].index
+
+            for i in match:
+                self.df.loc[i] = switch_endpoints(self.df.loc[i])
+
+        self.df = self.add_meta(self.df)
+
+        reordered_df = []
+        for start, end in new_connections:
+            match = self.df[(self.df["end_parent"] == end)
+                            & (self.df["start_parent"] == start)].index
+            for i in match:
+                reordered_df.append(self.df.loc[i])
+
+        self.df = pd.DataFrame(reordered_df)
         self.df = self.add_meta(self.df)
 
     def _get_sorted_dataframe(self):
@@ -253,6 +267,10 @@ def insert_line(df, index, string):
 
 
 def find_pattern(row):
+    for element in row:
+        if "von" in str(row):
+            return ()
+
     for i, element in enumerate(row):
         if element == "<" and row[i + 2] == ">":
             return (i - 1, i + 1, i + 3)
