@@ -2,6 +2,7 @@ import string
 import pandas as pd
 import os
 
+
 def main():
     inputfile = "Drahtliste_3ED00334R26-000.xlsx"
 
@@ -37,7 +38,12 @@ class WireListDataFrame():
         df = df.apply(define_parent_connectors, axis=1)
         try:
             groups = ["start_parent", "end_parent"]
-            self.connections = df.groupby(groups).count().index.to_list()
+            self.connections = []
+            for start, end in df[groups].values:
+                tup = (start, end)
+                if tup not in self.connections:
+                    self.connections.append((start, end))
+
         except KeyError:
             pass
 
@@ -81,7 +87,11 @@ class WireListDataFrame():
         self.sub_hdrs = []
         sorted_df = sort_by_connector(self.df)
         groups = ["start_parent", "end_parent"]
-        self.connections = sorted_df.groupby(groups).count().index.to_list()
+        self.connections = []
+        for start, end in sorted_df[groups].values:
+            tup = (start, end)
+            if tup not in self.connections:
+                self.connections.append((start, end))
         return sorted_df
 
     def _get_grouped_dataframe(self, sort_rows=True):
